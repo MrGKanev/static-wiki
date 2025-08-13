@@ -9,11 +9,18 @@ class Wiki
 {
   private $contentDir;
   private $navigation;
+  private $cache;
 
-  public function __construct($contentDir = null)
+  public function __construct($contentDir = null, $cache = null)
   {
     $this->contentDir = $contentDir ?: CONTENT_DIR;
     $this->navigation = null;
+    $this->cache = $cache;
+
+    // Initialize cache if enabled and not provided
+    if (ENABLE_CACHE && $this->cache === null) {
+      $this->cache = new Cache();
+    }
   }
 
   /**
@@ -58,6 +65,17 @@ class Wiki
       return null;
     }
 
+    // Use cache if enabled
+    if ($this->cache && ENABLE_CACHE) {
+      $cacheKey = 'content_' . md5($path);
+
+      return $this->cache->rememberFile($cacheKey, $filePath, function () use ($filePath) {
+        $content = file_get_contents($filePath);
+        return MarkdownParser::parse($content);
+      }, CONTENT_CACHE_TTL);
+    }
+
+    // Fallback without cache
     $content = file_get_contents($filePath);
     return MarkdownParser::parse($content);
   }
@@ -153,7 +171,23 @@ class Wiki
       return $this->navigation;
     }
 
-    $this->navigation = $this->buildNavTree($this->contentDir);
+    // Use cache if enabled
+    if ($this->cache && ENABLE_CACHE) {
+      $cacheKey = 'navigation';
+
+      $this->navigation = $this->cache->rememberDirectory(
+        $cacheKey,
+        $this->contentDir,
+        function () {
+          return $this->buildNavTree($this->contentDir);
+        },
+        NAVIGATION_CACHE_TTL
+      );
+    } else {
+      // Fallback without cache
+      $this->navigation = $this->buildNavTree($this->contentDir);
+    }
+
     return $this->navigation;
   }
 
@@ -277,6 +311,23 @@ class Wiki
       return [];
     }
 
+    // Use cache if enabled
+    if ($this->cache && ENABLE_CACHE) {
+      $cacheKey = 'search_' . md5($query);
+
+      return $this->cache->rememberDirectory(
+        $cacheKey,
+        $this->contentDir,
+        function () use ($query) {
+          $results = [];
+          $this->searchInDirectory($this->contentDir, $query, $results);
+          return array_slice($results, 0, MAX_SEARCH_RESULTS);
+        },
+        SEARCH_CACHE_TTL
+      );
+    }
+
+    // Fallback without cache
     $results = [];
     $this->searchInDirectory($this->contentDir, $query, $results);
 
@@ -367,5 +418,46 @@ class Wiki
   public function hasContent()
   {
     return is_dir($this->contentDir) && count(scandir($this->contentDir)) > 2;
+  }
+
+  /**
+   * Clear all cache entries
+   */
+  public function clearCache()
+  {
+    if ($this->cache && ENABLE_CACHE) {
+      return $this->cache->clear();
+    }
+    return 0;
+  }
+
+  /**
+   * Clean expired cache entries
+   */
+  public function cleanupCache()
+  {
+    if ($this->cache && ENABLE_CACHE) {
+      return $this->cache->cleanup();
+    }
+    return 0;
+  }
+
+  /**
+   * Get cache statistics
+   */
+  public function getCacheStats()
+  {
+    if ($this->cache && ENABLE_CACHE) {
+      return $this->cache->getStats();
+    }
+    return ['total' => 0, 'size' => 0, 'expired' => 0, 'enabled' => false];
+  }
+
+  /**
+   * Check if caching is enabled and working
+   */
+  public function isCacheEnabled()
+  {
+    return ENABLE_CACHE && $this->cache !== null;
   }
 }

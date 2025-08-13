@@ -20,7 +20,7 @@
     <div class="sidebar" id="sidebar">
       <div class="header">
         <h1>
-          <a href="?" aria-label="Home">
+          <a href="?" aria-label="Home - Return to main page" title="Go to Home">
             <?php echo htmlspecialchars(WIKI_TITLE); ?>
           </a>
         </h1>

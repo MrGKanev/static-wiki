@@ -52,10 +52,12 @@ body {
 .header h1 a {
   color: white;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .header h1 a:hover {
   color: #ecf0f1;
+  text-decoration: none;
 }
 
 /* Search Form */
@@ -267,20 +269,29 @@ body {
   margin-bottom: 20px;
   font-size: 14px;
   color: #666;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .breadcrumb a {
   color: #3498db;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .breadcrumb a:hover {
   text-decoration: underline;
+  color: #2980b9;
 }
 
 .breadcrumb .separator {
   margin: 0 8px;
   color: #bdc3c7;
+}
+
+.breadcrumb [aria-current="page"] {
+  color: #2c3e50;
+  font-weight: 500;
 }
 
 /* Search Results */
@@ -449,5 +460,52 @@ body {
   .content {
     box-shadow: none;
     padding: 0;
+  }
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus styles for keyboard navigation */
+a:focus,
+button:focus,
+input:focus {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Loading animation (if needed) */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }
