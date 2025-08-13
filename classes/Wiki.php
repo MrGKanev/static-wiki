@@ -413,6 +413,20 @@ class Wiki
   }
 
   /**
+   * Get page headings for table of contents
+   */
+  public function getPageHeadings($path)
+  {
+    $rawContent = $this->getRawPageContent($path);
+
+    if ($rawContent === null) {
+      return [];
+    }
+
+    return MarkdownParser::extractHeaders($rawContent);
+  }
+
+  /**
    * Check if wiki has content
    */
   public function hasContent()

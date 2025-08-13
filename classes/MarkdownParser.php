@@ -34,15 +34,65 @@ class MarkdownParser
   }
 
   /**
-   * Parse headers (# ## ### ####)
+   * Parse headers (# ## ### ####) with auto-generated IDs
    */
   private static function parseHeaders($text)
   {
-    $text = preg_replace('/^#### (.+)$/m', '<h4>$1</h4>', $text);
-    $text = preg_replace('/^### (.+)$/m', '<h3>$1</h3>', $text);
-    $text = preg_replace('/^## (.+)$/m', '<h2>$1</h2>', $text);
-    $text = preg_replace('/^# (.+)$/m', '<h1>$1</h1>', $text);
+    // Generate IDs for headers
+    $text = preg_replace_callback('/^(#{1,6})\s+(.+)$/m', function ($matches) {
+      $level = strlen($matches[1]);
+      $title = trim($matches[2]);
+      $id = self::generateHeaderId($title);
+
+      return "<h{$level} id=\"{$id}\">{$title}</h{$level}>";
+    }, $text);
+
     return $text;
+  }
+
+  /**
+   * Generate a URL-friendly ID from header text
+   */
+  private static function generateHeaderId($text)
+  {
+    // Remove HTML tags and special characters
+    $id = strip_tags($text);
+
+    // Convert to lowercase and replace spaces/special chars with hyphens
+    $id = strtolower($id);
+    $id = preg_replace('/[^a-z0-9]+/', '-', $id);
+    $id = trim($id, '-');
+
+    return $id ?: 'header';
+  }
+
+  /**
+   * Extract headers from markdown content for table of contents
+   */
+  public static function extractHeaders($content)
+  {
+    $headers = [];
+
+    if (empty($content)) {
+      return $headers;
+    }
+
+    // Find all headers
+    preg_match_all('/^(#{1,6})\s+(.+)$/m', $content, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $match) {
+      $level = strlen($match[1]);
+      $text = trim($match[2]);
+      $id = self::generateHeaderId($text);
+
+      $headers[] = [
+        'level' => $level,
+        'text' => $text,
+        'id' => $id
+      ];
+    }
+
+    return $headers;
   }
 
   /**

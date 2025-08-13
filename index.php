@@ -67,6 +67,7 @@ $pageContent = null;
 $pageTitle = WIKI_TITLE;
 $searchResults = [];
 $navigation = $wiki->getNavigation();
+$pageHeadings = [];
 
 // Handle search or page display
 if ($isSearch) {
@@ -85,6 +86,11 @@ if ($isSearch) {
   // Page display mode
   $pageContent = $wiki->getPageContent($currentPath);
   $pageTitle = $wiki->getPageTitle($currentPath);
+
+  // Extract headings for table of contents
+  if ($pageContent !== null) {
+    $pageHeadings = $wiki->getPageHeadings($currentPath);
+  }
 
   // Add site title unless it's the home page
   if (!empty($currentPath)) {

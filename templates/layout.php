@@ -10,36 +10,45 @@
 </head>
 
 <body>
-  <div class="container">
-    <!-- Mobile menu toggle -->
-    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu">
-      ☰
-    </button>
-
-    <!-- Sidebar Navigation -->
-    <div class="sidebar" id="sidebar">
-      <div class="header">
-        <h1>
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1 class="wiki-title">
           <a href="?" aria-label="Home - Return to main page" title="Go to Home">
             <?php echo htmlspecialchars(WIKI_TITLE); ?>
           </a>
         </h1>
-
-        <!-- Search Form -->
-        <form class="search-form" method="GET" role="search">
-          <input type="hidden" name="search" value="1">
-          <input
-            type="text"
-            name="q"
-            placeholder="Search..."
-            value="<?php echo htmlspecialchars($searchQuery ?? ''); ?>"
-            aria-label="Search the wiki">
-          <button type="submit" aria-label="Submit search">Search</button>
-        </form>
       </div>
 
-      <!-- Navigation Menu -->
-      <nav class="nav" role="navigation" aria-label="Main navigation">
+      <div class="header-right">
+        <!-- Search Form -->
+        <form class="search-form" method="GET" role="search">
+          <div class="search-container">
+            <input type="hidden" name="search" value="1">
+            <input
+              type="text"
+              name="q"
+              placeholder="Search documentation..."
+              value="<?php echo htmlspecialchars($searchQuery ?? ''); ?>"
+              aria-label="Search the wiki"
+              class="search-input">
+            <button type="submit" aria-label="Submit search" class="search-button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="m21 21-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout Container -->
+  <div class="layout-container">
+    <!-- Left Sidebar - Navigation -->
+    <aside class="left-sidebar">
+      <nav class="navigation" role="navigation" aria-label="Main navigation">
         <?php if (!empty($navigation)): ?>
           <?php echo renderNavigation($navigation); ?>
         <?php else: ?>
@@ -49,51 +58,90 @@
           </div>
         <?php endif; ?>
       </nav>
-    </div>
+    </aside>
 
     <!-- Main Content Area -->
     <main class="main-content" role="main">
       <?php echo $content; ?>
     </main>
+
+    <!-- Right Sidebar - Table of Contents -->
+    <aside class="right-sidebar">
+      <?php if (!$isSearch && !empty($pageHeadings)): ?>
+        <div class="toc-container">
+          <h3 class="toc-title">On this page</h3>
+          <nav class="table-of-contents" aria-label="Table of contents">
+            <?php echo renderTableOfContents($pageHeadings); ?>
+          </nav>
+        </div>
+      <?php endif; ?>
+    </aside>
   </div>
 
   <script>
     // Mobile menu functionality
     function toggleMobileMenu() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('active');
+      const sidebar = document.querySelector('.left-sidebar');
+      sidebar.classList.toggle('mobile-open');
     }
 
     // Close mobile menu when clicking outside
     document.addEventListener('click', function(event) {
-      const sidebar = document.getElementById('sidebar');
-      const toggle = document.querySelector('.mobile-menu-toggle');
+      const sidebar = document.querySelector('.left-sidebar');
+      const isClickInsideSidebar = sidebar.contains(event.target);
 
-      if (window.innerWidth <= 768 &&
-        !sidebar.contains(event.target) &&
-        !toggle.contains(event.target) &&
-        sidebar.classList.contains('active')) {
-        sidebar.classList.remove('active');
+      if (window.innerWidth <= 768 && !isClickInsideSidebar && sidebar.classList.contains('mobile-open')) {
+        sidebar.classList.remove('mobile-open');
       }
     });
 
     // Handle window resize
     window.addEventListener('resize', function() {
-      const sidebar = document.getElementById('sidebar');
+      const sidebar = document.querySelector('.left-sidebar');
       if (window.innerWidth > 768) {
-        sidebar.classList.remove('active');
+        sidebar.classList.remove('mobile-open');
       }
     });
 
-    // Keyboard navigation for accessibility
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar.classList.contains('active')) {
-          sidebar.classList.remove('active');
+    // Smooth scrolling for table of contents links
+    document.querySelectorAll('.table-of-contents a').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
         }
-      }
+      });
     });
+
+    // Highlight current section in table of contents
+    function updateTocHighlight() {
+      const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      const tocLinks = document.querySelectorAll('.table-of-contents a');
+
+      let current = '';
+      headings.forEach(heading => {
+        const rect = heading.getBoundingClientRect();
+        if (rect.top <= 100) {
+          current = '#' + heading.id;
+        }
+      });
+
+      tocLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === current) {
+          link.classList.add('active');
+        }
+      });
+    }
+
+    // Update TOC highlight on scroll
+    window.addEventListener('scroll', updateTocHighlight);
+    // Initial highlight
+    document.addEventListener('DOMContentLoaded', updateTocHighlight);
   </script>
 </body>
 
@@ -109,21 +157,19 @@ function renderNavigation($items, $level = 0)
     return '';
   }
 
-  $output = '<ul' . ($level === 0 ? ' class="nav-root"' : '') . '>';
+  $output = '<ul class="nav-list' . ($level === 0 ? ' nav-root' : '') . '">';
 
   foreach ($items as $item) {
-    $output .= '<li>';
+    $output .= '<li class="nav-item">';
 
     if ($item['type'] === 'category') {
-      $output .= '<div class="category">' . htmlspecialchars($item['name']) . '</div>';
+      $output .= '<div class="nav-category">' . htmlspecialchars($item['name']) . '</div>';
 
       if (!empty($item['children'])) {
-        $output .= '<div class="subcategory">';
         $output .= renderNavigation($item['children'], $level + 1);
-        $output .= '</div>';
       }
     } else {
-      $output .= '<a href="?page=' . urlencode($item['path']) . '">';
+      $output .= '<a href="?page=' . urlencode($item['path']) . '" class="nav-link">';
       $output .= htmlspecialchars($item['name']);
       $output .= '</a>';
     }
@@ -134,3 +180,31 @@ function renderNavigation($items, $level = 0)
   $output .= '</ul>';
   return $output;
 }
+
+/**
+ * Render table of contents from headings
+ */
+function renderTableOfContents($headings)
+{
+  if (empty($headings)) {
+    return '';
+  }
+
+  $output = '<ul class="toc-list">';
+
+  foreach ($headings as $heading) {
+    $level = $heading['level'];
+    $id = $heading['id'];
+    $text = $heading['text'];
+
+    $output .= '<li class="toc-item toc-level-' . $level . '">';
+    $output .= '<a href="#' . htmlspecialchars($id) . '" class="toc-link">';
+    $output .= htmlspecialchars($text);
+    $output .= '</a>';
+    $output .= '</li>';
+  }
+
+  $output .= '</ul>';
+  return $output;
+}
+?>
