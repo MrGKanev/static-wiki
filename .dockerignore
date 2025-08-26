@@ -1,0 +1,12 @@
+# .dockerignore
+.git/
+.gitignore
+*.md
+cache/
+vendor/
+node_modules/
+*.log
+.env*
+.DS_Store
+Thumbs.db
+docker-compose*.yml

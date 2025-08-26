@@ -29,6 +29,51 @@ if (ENABLE_CACHE) {
 // Initialize the wiki
 $wiki = new Wiki(null, $cache);
 
+// Handle PDF export requests
+if (isset($_GET['export']) && $_GET['export'] === 'pdf') {
+  // Check if TCPDF is available
+  if (!file_exists(__DIR__ . '/vendor/tecnickcom/tcpdf/tcpdf.php')) {
+    die('PDF export requires TCPDF library. Install via: composer require tecnickcom/tcpdf');
+  }
+
+  require_once CLASSES_DIR . '/PDFExporter.php';
+
+  try {
+    $exporter = new PDFExporter($wiki, $cache);
+    $exportType = $_GET['type'] ?? 'page';
+    $path = $wiki->getCurrentPath();
+
+    if ($exportType === 'section') {
+      $result = $exporter->exportSection($path);
+    } else {
+      $result = $exporter->exportPage($path);
+    }
+
+    // Set headers for PDF download
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="' . $result['filename'] . '"');
+    header('Content-Length: ' . strlen($result['content']));
+    header('Cache-Control: private, max-age=0, must-revalidate');
+    header('Pragma: public');
+
+    echo $result['content'];
+    exit;
+  } catch (Exception $e) {
+    // Log error and show user-friendly message
+    error_log('PDF Export Error: ' . $e->getMessage());
+
+    header('HTTP/1.1 500 Internal Server Error');
+    header('Content-Type: text/html');
+
+    echo '<!DOCTYPE html><html><head><title>Export Error</title></head><body>';
+    echo '<h1>PDF Export Error</h1>';
+    echo '<p>Unable to generate PDF export. Please try again later.</p>';
+    echo '<p><a href="javascript:history.back()">Go Back</a></p>';
+    echo '</body></html>';
+    exit;
+  }
+}
+
 // Get current state
 $currentPath = $wiki->getCurrentPath();
 $isSearch = isset($_GET['search']);
