@@ -113,6 +113,7 @@ $pageTitle = WIKI_TITLE;
 $searchResults = [];
 $navigation = $wiki->getNavigation();
 $pageHeadings = [];
+$pageModified = null;
 
 // Handle search or page display
 if ($isSearch) {
@@ -132,9 +133,10 @@ if ($isSearch) {
   $pageContent = $wiki->getPageContent($currentPath);
   $pageTitle = $wiki->getPageTitle($currentPath);
 
-  // Extract headings for table of contents
+  // Extract headings for table of contents and get modification time
   if ($pageContent !== null) {
     $pageHeadings = $wiki->getPageHeadings($currentPath);
+    $pageModified = $wiki->getPageModified($currentPath);
   }
 
   // Add site title unless it's the home page

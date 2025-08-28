@@ -655,6 +655,26 @@ body {
   flex-shrink: 0;
 }
 
+/* Page Meta Information */
+.page-meta {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.last-modified {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 8px 0;
+}
+
+.last-modified svg {
+  flex-shrink: 0;
+}
+
 /* Mobile Responsive */
 @media (max-width: 1024px) {
   .right-sidebar {
