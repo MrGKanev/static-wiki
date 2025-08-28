@@ -474,4 +474,18 @@ class Wiki
   {
     return ENABLE_CACHE && $this->cache !== null;
   }
+
+  /**
+   * Get the last modified time of a page
+   */
+  public function getPageModified($path)
+  {
+    $filePath = $this->getFilePath($path);
+
+    if (!$this->isValidFile($filePath)) {
+      return null;
+    }
+
+    return filemtime($filePath);
+  }
 }
