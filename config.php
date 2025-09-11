@@ -9,6 +9,7 @@ define('WIKI_TITLE', 'Company Wiki');
 define('CONTENT_DIR', __DIR__ . '/content');
 define('CACHE_DIR', __DIR__ . '/cache');
 
+// Logo configuration
 // Set LOGO_IMAGE to a path relative to the assets folder, or leave empty for text logo
 define('LOGO_IMAGE', ''); // Example: 'images/logo.png' or 'images/logo.svg'
 define('LOGO_ALT', 'Company Logo'); // Alt text for the logo image
@@ -17,7 +18,7 @@ define('LOGO_HEIGHT', '32'); // Height in pixels for the logo image
 // Application settings
 define('ITEMS_PER_PAGE', 10);
 define('SEARCH_SNIPPET_LENGTH', 200);
-define('DEBUG_MODE', true);
+define('DEBUG_MODE', false);
 
 // Cache settings
 define('ENABLE_CACHE', false);
