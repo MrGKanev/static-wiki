@@ -3,6 +3,7 @@
 /**
  * Main Wiki class
  * Handles content retrieval, navigation, and search functionality
+ * Enhanced version with improved nested directory support
  */
 
 class Wiki
@@ -25,22 +26,28 @@ class Wiki
 
   /**
    * Get the current page path from URL parameters
+   * Enhanced with better nested path handling
    */
   public function getCurrentPath()
   {
     $path = $_GET['page'] ?? '';
     $path = trim($path, '/');
 
-    // Security: prevent directory traversal
-    $path = $this->sanitizePath($path);
+    // Enhanced security: prevent directory traversal while preserving valid nested paths
+    $path = $this->sanitizePathEnhanced($path);
+
+    if (DEBUG_MODE) {
+      error_log("getCurrentPath: Raw path from URL: " . ($_GET['page'] ?? 'empty'));
+      error_log("getCurrentPath: Sanitized path: $path");
+    }
 
     return $path;
   }
 
   /**
-   * Sanitize file path to prevent security issues
+   * Enhanced path sanitization that preserves valid nested structures
    */
-  private function sanitizePath($path)
+  private function sanitizePathEnhanced($path)
   {
     // Remove any directory traversal attempts
     $path = str_replace(['../', '..\\', './'], '', $path);
@@ -48,93 +55,127 @@ class Wiki
     // Remove any null bytes
     $path = str_replace("\0", '', $path);
 
-    // Only allow alphanumeric, hyphens, underscores, and forward slashes
-    $path = preg_replace('/[^a-zA-Z0-9\-_\/]/', '', $path);
+    // Allow alphanumeric, hyphens, underscores, forward slashes, and dots
+    $path = preg_replace('/[^a-zA-Z0-9\-_\/\.]/', '', $path);
+
+    // Remove multiple consecutive slashes
+    $path = preg_replace('/\/+/', '/', $path);
+
+    // Remove leading/trailing slashes
+    $path = trim($path, '/');
 
     return $path;
   }
 
   /**
-   * Get content of a specific page
+   * Legacy sanitizePath method for backward compatibility
+   */
+  private function sanitizePath($path)
+  {
+    return $this->sanitizePathEnhanced($path);
+  }
+
+  /**
+   * Enhanced getPageContent with multiple path resolution
    */
   public function getPageContent($path)
   {
-    $filePath = $this->getFilePath($path);
+    // Try multiple path variations to handle different URL formats
+    $possiblePaths = $this->generatePossiblePaths($path);
 
-    if (!$this->isValidFile($filePath)) {
-      return null;
+    if (DEBUG_MODE) {
+      error_log("getPageContent: Trying paths for '$path': " . implode(', ', $possiblePaths));
     }
 
-    // Use cache if enabled
-    if ($this->cache && ENABLE_CACHE) {
-      $cacheKey = 'content_' . md5($path);
+    foreach ($possiblePaths as $tryPath) {
+      $filePath = $this->getFilePath($tryPath);
 
-      return $this->cache->rememberFile($cacheKey, $filePath, function () use ($filePath) {
-        $content = file_get_contents($filePath);
-        return MarkdownParser::parse($content);
-      }, CONTENT_CACHE_TTL);
+      if (DEBUG_MODE) {
+        error_log("getPageContent: Checking file: $filePath");
+      }
+
+      if ($this->isValidFile($filePath)) {
+        if (DEBUG_MODE) {
+          error_log("getPageContent: Found valid file: $filePath");
+        }
+
+        // Use cache if enabled
+        if ($this->cache && ENABLE_CACHE) {
+          $cacheKey = 'content_' . md5($tryPath);
+          return $this->cache->rememberFile(
+            $cacheKey,
+            $filePath,
+            function () use ($filePath) {
+              return MarkdownParser::parse(file_get_contents($filePath));
+            },
+            CONTENT_CACHE_TTL
+          );
+        }
+
+        return MarkdownParser::parse(file_get_contents($filePath));
+      }
     }
 
-    // Fallback without cache
-    $content = file_get_contents($filePath);
-    return MarkdownParser::parse($content);
+    if (DEBUG_MODE) {
+      error_log("getPageContent: No valid file found for path: $path");
+    }
+
+    return null;
   }
 
   /**
-   * Get raw content of a page (for search)
+   * Generate possible file paths for a given URL path
+   * This helps handle various URL formats and nested structures
+   */
+  private function generatePossiblePaths($path)
+  {
+    $paths = [];
+
+    // Original path as-is
+    $paths[] = $path;
+
+    // Handle cases where the path might need the filename repeated
+    // For example: implementation/Z1/accessories -> implementation/Z1/accessories/accessories
+    $pathParts = explode('/', $path);
+    if (count($pathParts) >= 2) {
+      $lastPart = end($pathParts);
+      if (!empty($lastPart)) {
+        $paths[] = $path . '/' . $lastPart;
+      }
+    }
+
+    // Handle index files
+    $paths[] = $path . '/index';
+
+    return array_unique($paths);
+  }
+
+  /**
+   * Get raw page content without markdown parsing
+   * Enhanced with multiple path resolution
    */
   public function getRawPageContent($path)
   {
-    $filePath = $this->getFilePath($path);
+    $possiblePaths = $this->generatePossiblePaths($path);
 
-    if (!$this->isValidFile($filePath)) {
-      return null;
+    foreach ($possiblePaths as $tryPath) {
+      $filePath = $this->getFilePath($tryPath);
+
+      if ($this->isValidFile($filePath)) {
+        return file_get_contents($filePath);
+      }
     }
 
-    return file_get_contents($filePath);
+    return null;
   }
 
   /**
-   * Get page title from content or generate from filename
-   */
-  public function getPageTitle($path)
-  {
-    if (empty($path)) {
-      return 'Home';
-    }
-
-    $rawContent = $this->getRawPageContent($path);
-
-    if ($rawContent === null) {
-      return '404 - Page Not Found';
-    }
-
-    // Try to extract title from content
-    $title = MarkdownParser::extractTitle($rawContent);
-    if ($title) {
-      return $title;
-    }
-
-    // Generate title from path
-    return $this->generateTitleFromPath($path);
-  }
-
-  /**
-   * Generate a readable title from file path
-   */
-  private function generateTitleFromPath($path)
-  {
-    $basename = basename($path);
-    return ucwords(str_replace(['-', '_'], ' ', $basename));
-  }
-
-  /**
-   * Get file path for a given page path
+   * Get file path from page path
    */
   private function getFilePath($path)
   {
     if (empty($path)) {
-      $path = 'index';
+      return $this->contentDir . '/index.md';
     }
 
     return $this->contentDir . '/' . $path . '.md';
@@ -192,17 +233,25 @@ class Wiki
   }
 
   /**
-   * Recursively build navigation tree from directory structure
+   * Enhanced buildNavTree with better debugging and path handling
    */
   private function buildNavTree($dir, $relativePath = '')
   {
     $items = [];
 
     if (!is_dir($dir)) {
+      if (DEBUG_MODE) {
+        error_log("buildNavTree: Directory does not exist: $dir");
+      }
       return $items;
     }
 
     $files = $this->getSortedDirectoryContents($dir);
+
+    if (DEBUG_MODE) {
+      error_log("buildNavTree: Processing directory: $dir (relativePath: $relativePath)");
+      error_log("buildNavTree: Found files: " . implode(', ', $files));
+    }
 
     foreach ($files as $file) {
       if ($this->shouldSkipFile($file)) {
@@ -213,11 +262,22 @@ class Wiki
       $relativeFilePath = $relativePath ? $relativePath . '/' . $file : $file;
 
       if (is_dir($fullPath)) {
-        $items[] = $this->createCategoryItem($file, $relativeFilePath, $fullPath);
+        $categoryItem = $this->createCategoryItem($file, $relativeFilePath, $fullPath);
+        if ($categoryItem) {
+          $items[] = $categoryItem;
+
+          if (DEBUG_MODE) {
+            error_log("buildNavTree: Created category: {$file} with " . count($categoryItem['children']) . " children");
+          }
+        }
       } elseif ($this->isMarkdownFile($file)) {
         $pageItem = $this->createPageItem($file, $relativeFilePath);
         if ($pageItem) {
           $items[] = $pageItem;
+
+          if (DEBUG_MODE) {
+            error_log("buildNavTree: Created page: {$file} -> path: {$pageItem['path']}");
+          }
         }
       }
     }
@@ -281,7 +341,7 @@ class Wiki
   }
 
   /**
-   * Create page navigation item
+   * Enhanced createPageItem method with better path handling for nested files
    */
   private function createPageItem($file, $relativeFilePath)
   {
@@ -292,14 +352,38 @@ class Wiki
       return null;
     }
 
-    $pagePath = dirname($relativeFilePath);
-    $pagePath = ($pagePath === '.') ? $name : $pagePath . '/' . $name;
+    // Improved path construction for nested files
+    $pagePath = $this->constructPagePath($relativeFilePath, $name);
+
+    // Add debug logging if enabled
+    if (DEBUG_MODE) {
+      error_log("Creating page item: file=$file, relativeFilePath=$relativeFilePath, pagePath=$pagePath");
+    }
 
     return [
       'type' => 'page',
       'name' => $this->generateTitleFromPath($name),
-      'path' => $pagePath
+      'path' => $pagePath,
+      'fullRelativePath' => $relativeFilePath // Add for debugging
     ];
+  }
+
+  /**
+   * Improved path construction that handles nested directories properly
+   */
+  private function constructPagePath($relativeFilePath, $name)
+  {
+    $directory = dirname($relativeFilePath);
+
+    // Handle root level files
+    if ($directory === '.' || empty($directory)) {
+      return $name;
+    }
+
+    // Remove the .md extension from the relative file path to get the page path
+    $pathWithoutExtension = preg_replace('/\.md$/', '', $relativeFilePath);
+
+    return $pathWithoutExtension;
   }
 
   /**
@@ -374,8 +458,9 @@ class Wiki
     }
 
     $name = pathinfo($relativeFilePath, PATHINFO_FILENAME);
-    $pagePath = dirname($relativeFilePath);
-    $pagePath = ($pagePath === '.') ? $name : $pagePath . '/' . $name;
+
+    // Use the enhanced path construction
+    $pagePath = $this->constructPagePath($relativeFilePath, $name);
 
     // Get title and snippet
     $title = MarkdownParser::extractTitle($content) ?: $this->generateTitleFromPath($name);
@@ -386,6 +471,49 @@ class Wiki
       'path' => $pagePath,
       'snippet' => $snippet
     ];
+  }
+
+  /**
+   * Get page title from content or generate from filename
+   */
+  public function getPageTitle($path)
+  {
+    if (empty($path)) {
+      return 'Home';
+    }
+
+    $rawContent = $this->getRawPageContent($path);
+
+    if ($rawContent === null) {
+      return '404 - Page Not Found';
+    }
+
+    // Try to extract title from content
+    $title = MarkdownParser::extractTitle($rawContent);
+    if ($title) {
+      return $title;
+    }
+
+    // Generate title from path
+    return $this->generateTitleFromPath($path);
+  }
+
+  /**
+   * Generate a readable title from a file/directory path
+   */
+  private function generateTitleFromPath($path)
+  {
+    // For path-based title generation, use the last part of the path
+    $basename = basename($path);
+
+    // Remove file extension
+    $basename = preg_replace('/\.[^.]+$/', '', $basename);
+
+    // Replace dashes and underscores with spaces
+    $basename = str_replace(['-', '_'], ' ', $basename);
+
+    // Capitalize words
+    return ucwords($basename);
   }
 
   /**
@@ -480,12 +608,16 @@ class Wiki
    */
   public function getPageModified($path)
   {
-    $filePath = $this->getFilePath($path);
+    $possiblePaths = $this->generatePossiblePaths($path);
 
-    if (!$this->isValidFile($filePath)) {
-      return null;
+    foreach ($possiblePaths as $tryPath) {
+      $filePath = $this->getFilePath($tryPath);
+
+      if ($this->isValidFile($filePath)) {
+        return filemtime($filePath);
+      }
     }
 
-    return filemtime($filePath);
+    return null;
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "static-wiki",
+  "name": "mrgkanev/static-wiki",
   "description": "A simple, fast company wiki system using Markdown files",
   "type": "project",
   "license": "MIT",
@@ -11,6 +11,7 @@
   ],
   "require": {
     "php": ">=8.3",
+    "league/commonmark": "^2.7",
     "tecnickcom/tcpdf": "^6.10"
   },
   "require-dev": {

@@ -1,0 +1,108 @@
+/**
+ * Page Actions CSS - Feedback and GitHub Edit Links
+ */
+
+/* Page Actions Container */
+.page-actions {
+  flex-shrink: 0;
+  padding: 1rem 1.5rem;
+  border-top: 0.0625rem solid var(--border-light);
+  background: var(--background);
+  margin-top: auto;
+}
+
+.page-actions h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.page-actions-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Page Action Button Styles */
+.page-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 0.0625rem solid var(--border-color);
+  background: var(--background);
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page-action-button:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+  background: var(--background-accent);
+  transform: translateY(-0.0625rem);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+}
+
+.page-action-button svg {
+  flex-shrink: 0;
+}
+
+/* Feedback Button Specific */
+.feedback-button:hover {
+  border-color: #10b981;
+  color: #059669;
+}
+
+.feedback-button:hover svg {
+  stroke: #059669;
+}
+
+/* GitHub Button Specific */
+.github-button:hover {
+  border-color: #6366f1;
+  color: #4f46e5;
+}
+
+.github-button:hover svg {
+  stroke: #4f46e5;
+}
+
+/* External link icon styling */
+.page-action-button svg:last-child {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.page-action-button:hover svg:last-child {
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 48rem) {
+  .page-actions {
+    padding: 0.75rem 1rem;
+  }
+
+  .page-action-button {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .page-actions h4 {
+    font-size: 0.8125rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Print styles - hide page actions when printing */
+@media print {
+  .page-actio

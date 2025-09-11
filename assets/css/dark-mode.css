@@ -1,0 +1,216 @@
+/**
+ * Dark Mode CSS - Theme Variables and Dark Mode Styles
+ */
+
+/* Light mode variables (default) */
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+  --background: #ffffff;
+  --background-secondary: #f8fafc;
+  --background-accent: #f1f5f9;
+  --sidebar-width: 17.5rem;
+  --toc-width: 15rem;
+  --header-height: 4rem;
+  --shadow-sm: 0 0.0625rem 0.125rem 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 0.25rem 0.375rem -0.0625rem rgb(0 0 0 / 0.1);
+  --radius: 0.375rem;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+}
+
+/* Dark mode variables */
+[data-theme="dark"] {
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --border-light: #4b5563;
+  --background: #111827;
+  --background-secondary: #1f2937;
+  --background-accent: #374151;
+  --shadow-sm: 0 0.0625rem 0.125rem 0 rgb(0 0 0 / 0.2);
+  --shadow-md: 0 0.25rem 0.375rem -0.0625rem rgb(0 0 0 / 0.3);
+}
+
+/* System preference detection */
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-muted: #9ca3af;
+    --border-color: #374151;
+    --border-light: #4b5563;
+    --background: #111827;
+    --background-secondary: #1f2937;
+    --background-accent: #374151;
+    --shadow-sm: 0 0.0625rem 0.125rem 0 rgb(0 0 0 / 0.2);
+    --shadow-md: 0 0.25rem 0.375rem -0.0625rem rgb(0 0 0 / 0.3);
+  }
+}
+
+/* Dark Mode Toggle Component */
+.theme-toggle {
+  padding: 0.75rem;
+  border-top: 0.0625rem solid var(--border-color);
+  margin-top: auto;
+  /* This will push it to the bottom */
+  flex-shrink: 0;
+  /* Prevent it from shrinking */
+  background: var(--background-secondary);
+  /* Ensure consistent background */
+}
+
+.theme-toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.theme-toggle-button:hover {
+  background: var(--background-accent);
+  color: var(--text-primary);
+}
+
+.theme-toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.theme-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0.7;
+}
+
+.theme-indicator-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+/* Light theme dot */
+[data-theme="light"] .theme-indicator-dot {
+  background: #fbbf24;
+}
+
+/* Dark theme dot */
+[data-theme="dark"] .theme-indicator-dot {
+  background: #6366f1;
+}
+
+/* System theme dot (follows system preference) */
+[data-theme="system"] .theme-indicator-dot {
+  background: linear-gradient(45deg, #fbbf24 50%, #6366f1 50%);
+}
+
+/* Theme transition for smooth switching */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Disable transitions during theme switch to prevent flash */
+.theme-switching * {
+  transition: none !important;
+}
+
+/* Dark mode specific adjustments */
+[data-theme="dark"] .content pre {
+  background: #1f2937;
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] .content code {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] .content table th {
+  background: #374151;
+}
+
+[data-theme="dark"] .content blockquote {
+  background: #1f2937;
+  border-left-color: var(--primary-color);
+}
+
+[data-theme="dark"] .search-input {
+  background: var(--background-secondary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Dark mode for live search */
+[data-theme="dark"] .live-search-dropdown {
+  background: var(--background-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .live-search-in-page h4,
+[data-theme="dark"] .live-search-across-files h4 {
+  background: var(--background-accent);
+  color: var(--text-muted);
+}
+
+/* System preference media query adjustments */
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] .content pre {
+    background: #1f2937;
+    border-color: #4b5563;
+  }
+
+  [data-theme="system"] .content code {
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  [data-theme="system"] .content table th {
+    background: #374151;
+  }
+
+  [data-theme="system"] .content blockquote {
+    background: #1f2937;
+    border-left-color: var(--primary-color);
+  }
+
+  [data-theme="system"] .search-input {
+    background: var(--background-secondary);
+    color: var(--text-primary);
+  }
+
+  [data-theme="system"] .search-input::placeholder {
+    color: var(--text-muted);
+  }
+}

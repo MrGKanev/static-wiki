@@ -17,6 +17,10 @@ class WikiKeyboardShortcuts {
             'k': () => this.previousLink(),
             'Enter': () => this.followCurrentLink(),
             
+            // Navigation categories
+            'c e': () => this.expandAllCategories(),
+            'c c': () => this.collapseAllCategories(),
+            
             // Page actions  
             'p': () => this.printPage(),
             'e': () => this.exportPDF(),
@@ -180,6 +184,19 @@ class WikiKeyboardShortcuts {
         this.links.forEach(link => link.classList.remove('keyboard-focus'));
     }
     
+    // Navigation categories
+    expandAllCategories() {
+        if (window.collapsibleNav) {
+            window.collapsibleNav.expandAll();
+        }
+    }
+    
+    collapseAllCategories() {
+        if (window.collapsibleNav) {
+            window.collapsibleNav.collapseAll();
+        }
+    }
+    
     // Page actions
     printPage() {
         window.print();
@@ -272,6 +289,8 @@ class WikiKeyboardShortcuts {
                             <div><kbd>j</kbd> Next link</div>
                             <div><kbd>k</kbd> Previous link</div>
                             <div><kbd>Enter</kbd> Follow highlighted link</div>
+                            <div><kbd>c</kbd> <kbd>e</kbd> Expand all categories</div>
+                            <div><kbd>c</kbd> <kbd>c</kbd> Collapse all categories</div>
                         </div>
                     </div>
                     <div class="help-section">
@@ -279,7 +298,6 @@ class WikiKeyboardShortcuts {
                         <div class="shortcut-list">
                             <div><kbd>p</kbd> Print page</div>
                             <div><kbd>e</kbd> Export page to PDF</div>
-                            <div><kbd>E</kbd> Export section to PDF</div>
                             <div><kbd>t</kbd> Toggle table of contents</div>
                         </div>
                     </div>
@@ -436,34 +454,6 @@ class WikiKeyboardShortcuts {
                 margin-top: 16px;
                 padding-top: 16px;
                 border-top: 1px solid var(--border-light);
-            }
-            
-            .export-button {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                padding: 6px 12px;
-                background: var(--primary-color);
-                color: white;
-                text-decoration: none;
-                border-radius: 4px;
-                font-size: 13px;
-                margin-right: 8px;
-                transition: background-color 0.2s ease;
-            }
-            
-            .export-button:hover {
-                background: var(--primary-hover);
-                color: white;
-                border-bottom: none;
-            }
-            
-            .export-button.secondary {
-                background: var(--text-muted);
-            }
-            
-            .export-button.secondary:hover {
-                background: var(--text-secondary);
             }
         `;
         document.head.appendChild(style);

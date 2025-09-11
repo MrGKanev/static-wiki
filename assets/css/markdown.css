@@ -1,0 +1,348 @@
+/**
+ * Markdown CSS - Markdown-specific Styling Enhancements
+ * This file contains additional styling specifically for markdown content
+ */
+
+/* Markdown-specific content enhancements */
+.content {
+  /* Better text rendering for markdown content */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Enhanced blockquote styling for markdown */
+.content blockquote {
+  position: relative;
+  font-style: italic;
+  quotes: "" " " "" "'" "'";
+}
+
+.content blockquote:before {
+  content: open-quote;
+  font-size: 2rem;
+  color: var(--primary-color);
+  position: absolute;
+  left: -0.5rem;
+  top: -0.5rem;
+  line-height: 1;
+  font-weight: bold;
+}
+
+.content blockquote p:first-child {
+  text-indent: 1rem;
+}
+
+/* Task list styling (GitHub-flavored markdown) */
+.content .task-list-item {
+  list-style: none;
+  position: relative;
+  padding-left: 0;
+  margin-left: -1.5rem;
+}
+
+.content .task-list-item input[type="checkbox"] {
+  position: absolute;
+  left: 0;
+  top: 0.25rem;
+  margin: 0;
+  cursor: not-allowed;
+}
+
+.content .task-list-item input[type="checkbox"]:checked+* {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Definition lists (if used) */
+.content dl {
+  margin: 1rem 0;
+}
+
+.content dt {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.content dd {
+  margin-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/* Horizontal rule enhancements */
+.content hr {
+  border: none;
+  height: 0.125rem;
+  background: linear-gradient(to right, transparent, var(--border-color), transparent);
+  margin: 2rem 0;
+}
+
+/* Enhanced table styling for markdown tables */
+.content table {
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.content table thead tr {
+  background: var(--background-accent);
+}
+
+.content table tbody tr:nth-child(even) {
+  background: var(--background-secondary);
+}
+
+.content table tbody tr:hover {
+  background: var(--background-accent);
+}
+
+/* Code syntax highlighting improvements */
+.content pre[class*="language-"] {
+  position: relative;
+  background: #f8f9fa;
+  border: 0.0625rem solid var(--border-color);
+}
+
+/* Different language backgrounds */
+.content pre code.language-javascript {
+  background: #fff3cd;
+}
+
+.content pre code.language-php {
+  background: #e7e3ff;
+}
+
+.content pre code.language-css {
+  background: #d1ecf1;
+}
+
+.content pre code.language-html {
+  background: #f8d7da;
+}
+
+.content pre code.language-json {
+  background: #d4edda;
+}
+
+/* Inline code enhancements */
+.content :not(pre)>code {
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+/* Link enhancements for markdown */
+.content a[href^="http"]:after {
+  content: " ↗";
+  font-size: 0.75em;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.content a[href^="#"]:after {
+  content: " #";
+  font-size: 0.75em;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+/* Remove external link indicator for images */
+.content a[href^="http"] img:after {
+  content: none;
+}
+
+/* Hide any heading anchor indicators */
+.content h1:before,
+.content h2:before,
+.content h3:before,
+.content h4:before,
+.content h5:before,
+.content h6:before,
+.content h1:after,
+.content h2:after,
+.content h3:after,
+.content h4:after,
+.content h5:after,
+.content h6:after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Hide paragraph symbols */
+.content p:before,
+.content p:after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Markdown image enhancements */
+.content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin: 1rem 0;
+}
+
+.content img[alt*="small"] {
+  max-width: 50%;
+}
+
+.content img[alt*="center"] {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Markdown alert/callout boxes */
+.content blockquote[class*="alert"],
+.content blockquote[class*="note"],
+.content blockquote[class*="warning"],
+.content blockquote[class*="tip"] {
+  border-left-width: 0.25rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.content blockquote.alert-info,
+.content blockquote.note {
+  background: #e7f3ff;
+  border-left-color: #0066cc;
+  color: #0066cc;
+}
+
+.content blockquote.alert-warning,
+.content blockquote.warning {
+  background: #fff3cd;
+  border-left-color: #856404;
+  color: #856404;
+}
+
+.content blockquote.alert-danger,
+.content blockquote.error {
+  background: #f8d7da;
+  border-left-color: #721c24;
+  color: #721c24;
+}
+
+.content blockquote.alert-success,
+.content blockquote.tip {
+  background: #d4edda;
+  border-left-color: #155724;
+  color: #155724;
+}
+
+/* Footnotes styling (if supported) */
+.content .footnotes {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 0.0625rem solid var(--border-light);
+  font-size: 0.875rem;
+}
+
+.content .footnotes ol {
+  margin-left: 0;
+  padding-left: 1.5rem;
+}
+
+.content .footnotes li {
+  margin-bottom: 0.5rem;
+}
+
+.content .footnote-ref,
+.content .footnote-back {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.content .footnote-ref:hover,
+.content .footnote-back:hover {
+  text-decoration: underline;
+}
+
+/* Table of contents styling (if auto-generated) */
+.content .table-of-contents {
+  background: var(--background-accent);
+  border: 0.0625rem solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
+
+.content .table-of-contents h2,
+.content .table-of-contents h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.content .table-of-contents ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.content .table-of-contents li {
+  margin-bottom: 0.25rem;
+}
+
+.content .table-of-contents a {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.content .table-of-contents a:hover {
+  color: var(--primary-color);
+}
+
+/* Enhanced emphasis styling */
+.content strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.content em {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+/* Markdown abbreviation styling */
+.content abbr[title] {
+  border-bottom: 0.0625rem dotted var(--text-muted);
+  cursor: help;
+  text-decoration: none;
+}
+
+/* Better spacing for consecutive elements */
+.content h1+h2,
+.content h2+h3,
+.content h3+h4 {
+  margin-top: 1.5rem;
+}
+
+.content p+h2,
+.content p+h3,
+.content p+h4 {
+  margin-top: 2rem;
+}
+
+/* Print-specific markdown adjustments */
+@media print {
+
+  .content a[href^="http"]:after,
+  .content a[href^="#"]:after {
+    font-size: 8pt;
+    color: #666;
+  }
+
+  .content blockquote {
+    page-break-inside: avoid;
+  }
+
+  .content .task-list-item input[type="checkbox"] {
+    -webkit-appearance: checkbox;
+    appearance: checkbox;
+  }
+}

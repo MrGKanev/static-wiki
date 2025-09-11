@@ -1,0 +1,112 @@
+/**
+ * Layout CSS - Main Page Structure
+ */
+
+/* Main Layout */
+.layout-container {
+  display: flex;
+  margin-top: var(--header-height);
+  min-height: calc(100vh - var(--header-height));
+}
+
+/* Left Sidebar - Navigation */
+.left-sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--background-secondary);
+  border-right: 0.0625rem solid var(--border-color);
+  height: calc(100vh - var(--header-height));
+  position: sticky;
+  top: var(--header-height);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem 3rem;
+  max-width: calc(100vw - var(--sidebar-width) - var(--toc-width));
+}
+
+/* Right Sidebar - Table of Contents */
+.right-sidebar {
+  width: var(--toc-width);
+  flex-shrink: 0;
+  padding: 0;
+  background: var(--background);
+  border-left: 0.0625rem solid var(--border-light);
+  height: calc(100vh - var(--header-height));
+  position: sticky;
+  top: var(--header-height);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.toc-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1.5rem 1rem 1.5rem;
+  min-height: 0;
+  /* Important for flex child to shrink */
+}
+
+.toc-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 0.0625rem solid var(--border-light);
+}
+
+.toc-list {
+  list-style: none;
+}
+
+.toc-item {
+  margin-bottom: 0.25rem;
+}
+
+.toc-link {
+  display: block;
+  padding: 0.375rem 0;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  transition: color 0.2s ease;
+  border-left: 0.125rem solid transparent;
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+  border-radius: 0.25rem;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.toc-link:hover {
+  color: var(--text-secondary);
+}
+
+.toc-link.active {
+  color: var(--primary-color);
+  border-left-color: var(--primary-color);
+  font-weight: 500;
+}
+
+.toc-level-2 .toc-link {
+  padding-left: 1rem;
+  margin-left: 0;
+}
+
+.toc-level-3 .toc-link {
+  padding-left: 1.5rem;
+  margin-left: 0.5rem;
+}
+
+.toc-level-4 .toc-link {
+  padding-left: 2rem;
+  margin-left: 1rem;
+}
