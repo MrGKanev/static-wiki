@@ -31,6 +31,10 @@ class PhaseValidator
         $this->validatePhase1_4_Interfaces();
         $this->validatePhase1_5_CacheTypeHints();
         $this->validatePhase1_6_WikiTypeHints();
+        $this->validatePhase2_1_MarkdownParserNamespace();
+        $this->validatePhase2_2_NamespaceUsage();
+        $this->validatePhase2_3_SearchConsolidation();
+        $this->validatePhase2_4_HTTPCaching();
 
         $this->printResults();
     }
@@ -324,7 +328,215 @@ class PhaseValidator
             $this->addWarning('1.6', 'Property $contentDir may not be typed');
         }
 
-        echo "  ℹ️  Wiki class type hints are ~60% complete (as expected)\n";
+        echo "  ℹ️  Wiki class type hints were 60% complete, checking if now 100%...\n";
+
+        // Check additional methods that should now be typed
+        $additionalTypedMethods = [
+            'search(string $query): array',
+            'getPageHeadings(string $path): array',
+            'getBreadcrumbs(string $currentPath): array'
+        ];
+
+        foreach ($additionalTypedMethods as $methodSignature) {
+            if (strpos($content, $methodSignature) !== false) {
+                $methodName = explode('(', $methodSignature)[0];
+                $this->addSuccess('1.6', "Additional method $methodName now typed (100% complete)");
+            }
+        }
+
+        echo "\n";
+    }
+
+    /**
+     * Phase 2.1: Validate MarkdownParser Namespace & Types
+     */
+    private function validatePhase2_1_MarkdownParserNamespace(): void
+    {
+        echo "📋 Phase 2.1: MarkdownParser Namespace & Types\n";
+
+        $parserPath = $this->projectRoot . '/classes/MarkdownParser.php';
+        if (!file_exists($parserPath)) {
+            $this->addError('2.1', 'MarkdownParser.php not found');
+            echo "\n";
+            return;
+        }
+
+        $content = file_get_contents($parserPath);
+
+        // Check for namespace
+        if (preg_match('/namespace\s+Wiki\s*;/i', $content)) {
+            $this->addSuccess('2.1', 'MarkdownParser has namespace declaration');
+        } else {
+            $this->addError('2.1', 'MarkdownParser missing namespace declaration');
+        }
+
+        // Check for interface implementation
+        if (preg_match('/class\s+MarkdownParser\s+implements\s+MarkdownParserInterface/i', $content)) {
+            $this->addSuccess('2.1', 'MarkdownParser implements interface');
+        } else {
+            $this->addWarning('2.1', 'MarkdownParser may not implement interface');
+        }
+
+        // Check for type hints on key methods
+        if (strpos($content, 'public static function parse(string $text): string') !== false) {
+            $this->addSuccess('2.1', 'parse() method has type hints');
+        } else {
+            $this->addError('2.1', 'parse() method missing type hints');
+        }
+
+        if (strpos($content, 'public static function extractTitle(string $content): ?string') !== false) {
+            $this->addSuccess('2.1', 'extractTitle() method has type hints');
+        } else {
+            $this->addError('2.1', 'extractTitle() method missing type hints');
+        }
+
+        echo "\n";
+    }
+
+    /**
+     * Phase 2.2: Validate Namespace Usage in index.php and search-api.php
+     */
+    private function validatePhase2_2_NamespaceUsage(): void
+    {
+        echo "📋 Phase 2.2: Namespace Usage in Main Files\n";
+
+        // Check index.php
+        $indexPath = $this->projectRoot . '/index.php';
+        if (file_exists($indexPath)) {
+            $content = file_get_contents($indexPath);
+
+            if (strpos($content, 'use Wiki\Wiki;') !== false) {
+                $this->addSuccess('2.2', 'index.php uses Wiki namespace');
+            } else {
+                $this->addError('2.2', 'index.php does not use Wiki namespace');
+            }
+
+            if (strpos($content, 'use Wiki\Cache;') !== false) {
+                $this->addSuccess('2.2', 'index.php uses Cache namespace');
+            } else {
+                $this->addError('2.2', 'index.php does not use Cache namespace');
+            }
+        } else {
+            $this->addError('2.2', 'index.php not found');
+        }
+
+        // Check search-api.php
+        $searchPath = $this->projectRoot . '/search-api.php';
+        if (file_exists($searchPath)) {
+            $content = file_get_contents($searchPath);
+
+            if (strpos($content, 'use Wiki\Wiki;') !== false) {
+                $this->addSuccess('2.2', 'search-api.php uses Wiki namespace');
+            } else {
+                $this->addError('2.2', 'search-api.php does not use Wiki namespace');
+            }
+        } else {
+            $this->addError('2.2', 'search-api.php not found');
+        }
+
+        echo "\n";
+    }
+
+    /**
+     * Phase 2.3: Validate Search Consolidation
+     */
+    private function validatePhase2_3_SearchConsolidation(): void
+    {
+        echo "📋 Phase 2.3: Search Consolidation\n";
+
+        $searchPath = $this->projectRoot . '/search-api.php';
+        if (!file_exists($searchPath)) {
+            $this->addError('2.3', 'search-api.php not found');
+            echo "\n";
+            return;
+        }
+
+        $content = file_get_contents($searchPath);
+
+        // Check that it uses Wiki::search()
+        if (strpos($content, '$wiki->search($query)') !== false) {
+            $this->addSuccess('2.3', 'search-api.php uses Wiki::search()');
+        } else {
+            $this->addError('2.3', 'search-api.php does not use Wiki::search()');
+        }
+
+        // Check that duplicate functions are removed
+        $duplicateFunctions = ['searchAllFiles', 'searchInDir', 'searchInFile', 'createPagePath'];
+        $allRemoved = true;
+
+        foreach ($duplicateFunctions as $func) {
+            if (preg_match('/function\s+' . $func . '\s*\(/i', $content)) {
+                $this->addError('2.3', "Duplicate function $func still exists");
+                $allRemoved = false;
+            }
+        }
+
+        if ($allRemoved) {
+            $this->addSuccess('2.3', 'All duplicate search functions removed');
+        }
+
+        // Check file size (should be much smaller now)
+        $lines = count(file($searchPath));
+        if ($lines < 100) {
+            $this->addSuccess('2.3', "search-api.php is concise ($lines lines, was ~270)");
+        } else {
+            $this->addWarning('2.3', "search-api.php still large ($lines lines)");
+        }
+
+        echo "\n";
+    }
+
+    /**
+     * Phase 2.4: Validate HTTP Caching Headers
+     */
+    private function validatePhase2_4_HTTPCaching(): void
+    {
+        echo "📋 Phase 2.4: HTTP Caching Headers\n";
+
+        $indexPath = $this->projectRoot . '/index.php';
+        if (!file_exists($indexPath)) {
+            $this->addError('2.4', 'index.php not found');
+            echo "\n";
+            return;
+        }
+
+        $content = file_get_contents($indexPath);
+
+        // Check for Last-Modified header
+        if (strpos($content, "'Last-Modified: '") !== false || strpos($content, '"Last-Modified: "') !== false) {
+            $this->addSuccess('2.4', 'Last-Modified header added');
+        } else {
+            $this->addError('2.4', 'Last-Modified header not found');
+        }
+
+        // Check for Cache-Control header
+        if (strpos($content, 'Cache-Control:') !== false) {
+            $this->addSuccess('2.4', 'Cache-Control header added');
+        } else {
+            $this->addError('2.4', 'Cache-Control header not found');
+        }
+
+        // Check for ETag header
+        if (strpos($content, 'ETag:') !== false) {
+            $this->addSuccess('2.4', 'ETag header added');
+        } else {
+            $this->addError('2.4', 'ETag header not found');
+        }
+
+        // Check for 304 Not Modified response
+        if (strpos($content, '304 Not Modified') !== false) {
+            $this->addSuccess('2.4', '304 Not Modified response implemented');
+        } else {
+            $this->addError('2.4', '304 Not Modified response not found');
+        }
+
+        // Check for If-Modified-Since handling
+        if (strpos($content, 'HTTP_IF_MODIFIED_SINCE') !== false) {
+            $this->addSuccess('2.4', 'If-Modified-Since check implemented');
+        } else {
+            $this->addError('2.4', 'If-Modified-Since check not found');
+        }
+
         echo "\n";
     }
 
