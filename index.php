@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Company Wiki - Main Entry Point
- * 
+ *
  * A simple, file-based wiki system using markdown files
  * organized in a folder structure for navigation.
  */

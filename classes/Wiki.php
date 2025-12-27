@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Main Wiki class
  * Handles content retrieval, navigation, and search functionality
