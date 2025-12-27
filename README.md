@@ -176,21 +176,6 @@ composer test
 composer run clear-cache
 ```
 
-### Phase Validation
-
-Validate that all code optimizations are correctly implemented:
-
-```bash
-php validate-phases.php
-```
-
-This checks:
-- PHP 8.4+ requirement in composer.json and Dockerfile
-- Strict types declaration in all PHP files
-- JSON caching (no serialize/unserialize vulnerabilities)
-- Interface implementations
-- Type hints and namespaces
-
 ## Contributing
 
 1. Fork the repository
