@@ -74,7 +74,7 @@ class Wiki
   /**
    * Legacy sanitizePath method for backward compatibility
    */
-  private function sanitizePath($path)
+  private function sanitizePath(string $path): string
   {
     return $this->sanitizePathEnhanced($path);
   }
@@ -82,7 +82,7 @@ class Wiki
   /**
    * Enhanced getPageContent with multiple path resolution
    */
-  public function getPageContent($path)
+  public function getPageContent(string $path): ?string
   {
     // Try multiple path variations to handle different URL formats
     $possiblePaths = $this->generatePossiblePaths($path);
@@ -131,7 +131,7 @@ class Wiki
    * Generate possible file paths for a given URL path
    * This helps handle various URL formats and nested structures
    */
-  private function generatePossiblePaths($path)
+  private function generatePossiblePaths(string $path): array
   {
     $paths = [];
 
@@ -158,7 +158,7 @@ class Wiki
    * Get raw page content without markdown parsing
    * Enhanced with multiple path resolution
    */
-  public function getRawPageContent($path)
+  public function getRawPageContent(string $path): ?string
   {
     $possiblePaths = $this->generatePossiblePaths($path);
 
@@ -176,7 +176,7 @@ class Wiki
   /**
    * Get file path from page path
    */
-  private function getFilePath($path)
+  private function getFilePath(string $path): string
   {
     if (empty($path)) {
       return $this->contentDir . '/index.md';
@@ -188,7 +188,7 @@ class Wiki
   /**
    * Check if file exists and is valid
    */
-  private function isValidFile($filePath)
+  private function isValidFile(string $filePath): bool
   {
     if (!file_exists($filePath)) {
       return false;
@@ -210,7 +210,7 @@ class Wiki
   /**
    * Build and cache navigation tree
    */
-  public function getNavigation()
+  public function getNavigation(): array
   {
     if ($this->navigation !== null) {
       return $this->navigation;
@@ -239,7 +239,7 @@ class Wiki
   /**
    * Enhanced buildNavTree with better debugging and path handling
    */
-  private function buildNavTree($dir, $relativePath = '')
+  private function buildNavTree(string $dir, string $relativePath = ''): array
   {
     $items = [];
 
@@ -292,7 +292,7 @@ class Wiki
   /**
    * Get sorted directory contents
    */
-  private function getSortedDirectoryContents($dir)
+  private function getSortedDirectoryContents(string $dir): array
   {
     $files = scandir($dir);
 
@@ -318,7 +318,7 @@ class Wiki
   /**
    * Check if file should be skipped
    */
-  private function shouldSkipFile($file)
+  private function shouldSkipFile(string $file): bool
   {
     return $file[0] === '.' || $file === 'README.md';
   }
@@ -326,7 +326,7 @@ class Wiki
   /**
    * Check if file is markdown
    */
-  private function isMarkdownFile($file)
+  private function isMarkdownFile(string $file): bool
   {
     return pathinfo($file, PATHINFO_EXTENSION) === 'md';
   }
@@ -334,7 +334,7 @@ class Wiki
   /**
    * Create category navigation item
    */
-  private function createCategoryItem($file, $relativeFilePath, $fullPath)
+  private function createCategoryItem(string $file, string $relativeFilePath, string $fullPath): array
   {
     return [
       'type' => 'category',
@@ -347,7 +347,7 @@ class Wiki
   /**
    * Enhanced createPageItem method with better path handling for nested files
    */
-  private function createPageItem($file, $relativeFilePath)
+  private function createPageItem(string $file, string $relativeFilePath): ?array
   {
     $name = pathinfo($file, PATHINFO_FILENAME);
 
@@ -375,7 +375,7 @@ class Wiki
   /**
    * Improved path construction that handles nested directories properly
    */
-  private function constructPagePath($relativeFilePath, $name)
+  private function constructPagePath(string $relativeFilePath, string $name): string
   {
     $directory = dirname($relativeFilePath);
 
@@ -393,7 +393,7 @@ class Wiki
   /**
    * Search for content across all markdown files
    */
-  public function search($query)
+  public function search(string $query): array
   {
     if (empty($query) || strlen($query) < 2) {
       return [];
@@ -426,7 +426,7 @@ class Wiki
   /**
    * Recursively search in directory
    */
-  private function searchInDirectory($dir, $query, &$results, $relativePath = '')
+  private function searchInDirectory(string $dir, string $query, array &$results, string $relativePath = ''): void
   {
     if (!is_dir($dir)) {
       return;
@@ -453,7 +453,7 @@ class Wiki
   /**
    * Search within a specific file
    */
-  private function searchInFile($filePath, $relativeFilePath, $query, &$results)
+  private function searchInFile(string $filePath, string $relativeFilePath, string $query, array &$results): void
   {
     $content = file_get_contents($filePath);
 
@@ -480,7 +480,7 @@ class Wiki
   /**
    * Get page title from content or generate from filename
    */
-  public function getPageTitle($path)
+  public function getPageTitle(string $path): string
   {
     if (empty($path)) {
       return 'Home';
@@ -505,7 +505,7 @@ class Wiki
   /**
    * Generate a readable title from a file/directory path
    */
-  private function generateTitleFromPath($path)
+  private function generateTitleFromPath(string $path): string
   {
     // For path-based title generation, use the last part of the path
     $basename = basename($path);
@@ -523,7 +523,7 @@ class Wiki
   /**
    * Get breadcrumb navigation for current path
    */
-  public function getBreadcrumbs($currentPath)
+  public function getBreadcrumbs(string $currentPath): array
   {
     if (empty($currentPath)) {
       return [];
@@ -547,7 +547,7 @@ class Wiki
   /**
    * Get page headings for table of contents
    */
-  public function getPageHeadings($path)
+  public function getPageHeadings(string $path): array
   {
     $rawContent = $this->getRawPageContent($path);
 
@@ -561,7 +561,7 @@ class Wiki
   /**
    * Check if wiki has content
    */
-  public function hasContent()
+  public function hasContent(): bool
   {
     return is_dir($this->contentDir) && count(scandir($this->contentDir)) > 2;
   }
@@ -569,7 +569,7 @@ class Wiki
   /**
    * Clear all cache entries
    */
-  public function clearCache()
+  public function clearCache(): int
   {
     if ($this->cache && ENABLE_CACHE) {
       return $this->cache->clear();
@@ -580,7 +580,7 @@ class Wiki
   /**
    * Clean expired cache entries
    */
-  public function cleanupCache()
+  public function cleanupCache(): int
   {
     if ($this->cache && ENABLE_CACHE) {
       return $this->cache->cleanup();
@@ -591,7 +591,7 @@ class Wiki
   /**
    * Get cache statistics
    */
-  public function getCacheStats()
+  public function getCacheStats(): array
   {
     if ($this->cache && ENABLE_CACHE) {
       return $this->cache->getStats();
@@ -602,7 +602,7 @@ class Wiki
   /**
    * Check if caching is enabled and working
    */
-  public function isCacheEnabled()
+  public function isCacheEnabled(): bool
   {
     return ENABLE_CACHE && $this->cache !== null;
   }
@@ -610,7 +610,7 @@ class Wiki
   /**
    * Get the last modified time of a page
    */
-  public function getPageModified($path)
+  public function getPageModified(string $path): ?int
   {
     $possiblePaths = $this->generatePossiblePaths($path);
 

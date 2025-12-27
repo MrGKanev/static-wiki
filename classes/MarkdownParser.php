@@ -2,26 +2,38 @@
 
 declare(strict_types=1);
 
+namespace Wiki;
+
+use Wiki\Interfaces\MarkdownParserInterface;
+use League\CommonMark\MarkdownConverter;
+use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
+use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
+use DOMDocument;
+use DOMXPath;
+use Exception;
+
 /**
  * Enhanced Markdown Parser with League/CommonMark and Fallback
  * Automatically falls back to simple parser if League/CommonMark is not available
  */
-class MarkdownParser
+class MarkdownParser implements MarkdownParserInterface
 {
-  private static $converter = null;
-  private static $useLeague = null;
-  private static $debugInfo = [];
+  private static ?MarkdownConverter $converter = null;
+  private static ?bool $useLeague = null;
+  private static array $debugInfo = [];
 
   /**
    * Check if League/CommonMark is available
    */
-  private static function isLeagueAvailable()
+  private static function isLeagueAvailable(): bool
   {
     if (self::$useLeague === null) {
       self::$debugInfo[] = 'Checking League/CommonMark availability...';
 
       // Try to load composer autoloader if not already loaded
-      if (!class_exists('League\CommonMark\MarkdownConverter')) {
+      if (!class_exists('\League\CommonMark\MarkdownConverter')) {
         self::$debugInfo[] = 'MarkdownConverter class not found, trying to load autoloader...';
 
         // Determine the application root directory
@@ -65,7 +77,7 @@ class MarkdownParser
       }
 
       // Check if the class is available after trying to load autoloader
-      $classExists = class_exists('League\CommonMark\MarkdownConverter');
+      $classExists = class_exists('\League\CommonMark\MarkdownConverter');
       self::$useLeague = $classExists;
 
       if ($classExists) {
@@ -86,7 +98,7 @@ class MarkdownParser
   /**
    * Get configured markdown converter instance (League/CommonMark)
    */
-  private static function getLeagueConverter()
+  private static function getLeagueConverter(): ?MarkdownConverter
   {
     if (self::$converter === null && self::isLeagueAvailable()) {
       try {
@@ -95,16 +107,16 @@ class MarkdownParser
           'allow_unsafe_links' => false,
         ];
 
-        $environment = new \League\CommonMark\Environment\Environment($config);
-        $environment->addExtension(new \League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension());
-        $environment->addExtension(new \League\CommonMark\Extension\GithubFlavoredMarkdownExtension());
+        $environment = new Environment($config);
+        $environment->addExtension(new CommonMarkCoreExtension());
+        $environment->addExtension(new GithubFlavoredMarkdownExtension());
 
         // Add HeadingPermalink extension to generate IDs
         if (class_exists('\League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension')) {
-          $environment->addExtension(new \League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension());
+          $environment->addExtension(new HeadingPermalinkExtension());
         }
 
-        self::$converter = new \League\CommonMark\MarkdownConverter($environment);
+        self::$converter = new MarkdownConverter($environment);
 
         if (defined('DEBUG_MODE') && DEBUG_MODE && isset($_GET['debug_markdown'])) {
           error_log('MarkdownParser: Successfully initialized League/CommonMark converter with ID generation');
@@ -123,7 +135,7 @@ class MarkdownParser
   /**
    * Parse markdown text to HTML
    */
-  public static function parse($text)
+  public static function parse(string $text): string
   {
     if (empty($text)) {
       return '';
@@ -165,7 +177,7 @@ class MarkdownParser
   /**
    * Ensure all headings have IDs (post-processing step)
    */
-  private static function ensureHeadingIds($html)
+  private static function ensureHeadingIds(string $html): string
   {
     // Use DOMDocument to properly parse and modify HTML
     if (class_exists('DOMDocument')) {
@@ -179,7 +191,7 @@ class MarkdownParser
   /**
    * Ensure heading IDs using DOMDocument (preferred method)
    */
-  private static function ensureHeadingIdsWithDOM($html)
+  private static function ensureHeadingIdsWithDOM(string $html): string
   {
     try {
       $dom = new DOMDocument('1.0', 'UTF-8');
@@ -214,7 +226,7 @@ class MarkdownParser
   /**
    * Ensure heading IDs using regex (fallback method)
    */
-  private static function ensureHeadingIdsWithRegex($html)
+  private static function ensureHeadingIdsWithRegex(string $html): string
   {
     return preg_replace_callback(
       '/<(h[1-6])(?![^>]*\sid=)([^>]*)>(.+?)<\/\1>/i',
@@ -237,7 +249,7 @@ class MarkdownParser
   /**
    * Simple markdown parser fallback
    */
-  private static function parseSimple($text)
+  private static function parseSimple(string $text): string
   {
     // Normalize line endings
     $text = str_replace(["\r\n", "\r"], "\n", $text);
@@ -267,7 +279,7 @@ class MarkdownParser
   /**
    * Parse fenced code blocks (```)
    */
-  private static function parseFencedCodeBlocks($text)
+  private static function parseFencedCodeBlocks(string $text): string
   {
     return preg_replace_callback(
       '/^```(\w+)?\s*\n(.*?)\n```$/ms',
@@ -284,7 +296,7 @@ class MarkdownParser
   /**
    * Parse headers (# ## ### ####) with auto-generated IDs
    */
-  private static function parseHeaders($text)
+  private static function parseHeaders(string $text): string
   {
     return preg_replace_callback('/^(#{1,6})\s+(.+)$/m', function ($matches) {
       $level = strlen($matches[1]);
@@ -297,7 +309,7 @@ class MarkdownParser
   /**
    * Parse horizontal rules (--- or *** or ___)
    */
-  private static function parseHorizontalRules($text)
+  private static function parseHorizontalRules(string $text): string
   {
     return preg_replace('/^[ \t]*(-{3,}|\*{3,}|_{3,})[ \t]*$/m', '<hr>', $text);
   }
@@ -305,7 +317,7 @@ class MarkdownParser
   /**
    * Parse blockquotes (> text)
    */
-  private static function parseBlockquotes($text)
+  private static function parseBlockquotes(string $text): string
   {
     return preg_replace_callback('/^>\s?(.+)$/m', function ($matches) {
       return '<blockquote><p>' . $matches[1] . '</p></blockquote>';
@@ -315,7 +327,7 @@ class MarkdownParser
   /**
    * Parse simple tables
    */
-  private static function parseTables($text)
+  private static function parseTables(string $text): string
   {
     $lines = explode("\n", $text);
     $result = [];
@@ -355,7 +367,7 @@ class MarkdownParser
   /**
    * Render simple table
    */
-  private static function renderSimpleTable($rows)
+  private static function renderSimpleTable(array $rows): string
   {
     if (empty($rows)) return '';
 
@@ -389,7 +401,7 @@ class MarkdownParser
   /**
    * Parse task lists (- [ ] and - [x])
    */
-  private static function parseTaskLists($text)
+  private static function parseTaskLists(string $text): string
   {
     return preg_replace_callback('/^[-*+]\s+\[([ xX])\]\s+(.+)$/m', function ($matches) {
       $checked = strtolower($matches[1]) === 'x' ? 'checked' : '';
@@ -401,7 +413,7 @@ class MarkdownParser
   /**
    * Parse simple lists
    */
-  private static function parseLists($text)
+  private static function parseLists(string $text): string
   {
     // Unordered lists
     $text = preg_replace('/^[-*+]\s+(.+)$/m', '<li>$1</li>', $text);
@@ -416,7 +428,7 @@ class MarkdownParser
   /**
    * Parse inline code (`)
    */
-  private static function parseInlineCode($text)
+  private static function parseInlineCode(string $text): string
   {
     return preg_replace('/`([^`]+)`/', '<code>$1</code>', $text);
   }
@@ -424,7 +436,7 @@ class MarkdownParser
   /**
    * Parse links [text](url)
    */
-  private static function parseLinks($text)
+  private static function parseLinks(string $text): string
   {
     return preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2">$1</a>', $text);
   }
@@ -432,7 +444,7 @@ class MarkdownParser
   /**
    * Parse images ![alt](src)
    */
-  private static function parseImages($text)
+  private static function parseImages(string $text): string
   {
     return preg_replace('/!\[([^\]]*)\]\(([^)]+)\)/', '<img src="$2" alt="$1">', $text);
   }
@@ -440,7 +452,7 @@ class MarkdownParser
   /**
    * Parse strikethrough (~~text~~)
    */
-  private static function parseStrikethrough($text)
+  private static function parseStrikethrough(string $text): string
   {
     return preg_replace('/~~([^~]+)~~/', '<del>$1</del>', $text);
   }
@@ -448,7 +460,7 @@ class MarkdownParser
   /**
    * Parse bold text (** and __)
    */
-  private static function parseBold($text)
+  private static function parseBold(string $text): string
   {
     $text = preg_replace('/\*\*([^*]+)\*\*/', '<strong>$1</strong>', $text);
     $text = preg_replace('/__([^_]+)__/', '<strong>$1</strong>', $text);
@@ -458,7 +470,7 @@ class MarkdownParser
   /**
    * Parse italic text (* and _)
    */
-  private static function parseItalic($text)
+  private static function parseItalic(string $text): string
   {
     $text = preg_replace('/(?<!\*)\*([^*]+)\*(?!\*)/', '<em>$1</em>', $text);
     $text = preg_replace('/(?<!_)_([^_]+)_(?!_)/', '<em>$1</em>', $text);
@@ -468,7 +480,7 @@ class MarkdownParser
   /**
    * Parse autolinks
    */
-  private static function parseAutolinks($text)
+  private static function parseAutolinks(string $text): string
   {
     return preg_replace_callback(
       '/\b(https?:\/\/[^\s<>"`{}\[\]\\\\]+)/i',
@@ -483,7 +495,7 @@ class MarkdownParser
   /**
    * Parse paragraphs
    */
-  private static function parseParagraphs($text)
+  private static function parseParagraphs(string $text): string
   {
     $paragraphs = explode("\n\n", $text);
     $result = [];
@@ -506,7 +518,7 @@ class MarkdownParser
   /**
    * Generate a URL-friendly ID from header text
    */
-  private static function generateHeaderId($text)
+  private static function generateHeaderId(string $text): string
   {
     $id = strip_tags($text);
     $id = strtolower($id);
@@ -524,7 +536,7 @@ class MarkdownParser
   /**
    * Extract title from markdown content (first H1)
    */
-  public static function extractTitle($content)
+  public static function extractTitle(string $content): ?string
   {
     if (empty($content)) {
       return null;
@@ -540,7 +552,7 @@ class MarkdownParser
   /**
    * Extract headers from markdown content for table of contents
    */
-  public static function extractHeaders($content)
+  public static function extractHeaders(string $content): array
   {
     $headers = [];
     if (empty($content)) {
@@ -567,7 +579,7 @@ class MarkdownParser
   /**
    * Create a search snippet with highlighted terms
    */
-  public static function createSearchSnippet($content, $searchTerm, $length = null)
+  public static function createSearchSnippet(string $content, string $searchTerm, ?int $length = null): string
   {
     $length = $length ?: (defined('SEARCH_SNIPPET_LENGTH') ? SEARCH_SNIPPET_LENGTH : 200);
 
@@ -596,7 +608,7 @@ class MarkdownParser
   /**
    * Get parser information and debug details
    */
-  public static function getParserInfo()
+  public static function getParserInfo(): array
   {
     $isLeagueAvailable = self::isLeagueAvailable();
 
@@ -629,7 +641,7 @@ class MarkdownParser
   /**
    * Force refresh of League availability check (useful for debugging)
    */
-  public static function refreshLeagueCheck()
+  public static function refreshLeagueCheck(): bool
   {
     self::$useLeague = null;
     self::$converter = null;

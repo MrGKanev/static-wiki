@@ -12,10 +12,21 @@ declare(strict_types=1);
 // Load configuration
 require_once __DIR__ . '/config.php';
 
-// Load classes
-require_once CLASSES_DIR . '/MarkdownParser.php';
-require_once CLASSES_DIR . '/Cache.php';
-require_once CLASSES_DIR . '/Wiki.php';
+// Load classes (check for autoloader first)
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+  require_once __DIR__ . '/vendor/autoload.php';
+} else {
+  // Fallback to manual loading
+  require_once CLASSES_DIR . '/Interfaces/CacheInterface.php';
+  require_once CLASSES_DIR . '/Interfaces/MarkdownParserInterface.php';
+  require_once CLASSES_DIR . '/MarkdownParser.php';
+  require_once CLASSES_DIR . '/Cache.php';
+  require_once CLASSES_DIR . '/Wiki.php';
+}
+
+use Wiki\Cache;
+use Wiki\Wiki;
+use Wiki\MarkdownParser;
 
 // Initialize cache if enabled
 $cache = null;
@@ -80,6 +91,50 @@ if (isset($_GET['export']) && $_GET['export'] === 'pdf') {
 $currentPath = $wiki->getCurrentPath();
 $isSearch = isset($_GET['search']);
 $searchQuery = trim($_GET['q'] ?? '');
+
+// Add HTTP caching headers for better performance (before any output)
+if (!$isSearch && !isset($_GET['export']) && !isset($_GET['action'])) {
+  $lastModified = $wiki->getPageModified($currentPath);
+
+  if ($lastModified) {
+    $lastModifiedStr = gmdate('D, d M Y H:i:s', $lastModified) . ' GMT';
+    header('Last-Modified: ' . $lastModifiedStr);
+    header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
+
+    // Generate ETag based on path and modification time
+    $etag = '"' . md5($currentPath . $lastModified) . '"';
+    header('ETag: ' . $etag);
+
+    // Check If-Modified-Since header
+    if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+      $ifModifiedSince = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']);
+      if ($ifModifiedSince && $ifModifiedSince >= $lastModified) {
+        header('HTTP/1.1 304 Not Modified');
+        exit;
+      }
+    }
+
+    // Check If-None-Match header (ETag)
+    if (isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
+      $clientEtag = trim($_SERVER['HTTP_IF_NONE_MATCH']);
+
+      // Handle multiple ETags (comma-separated)
+      $clientEtags = array_map('trim', explode(',', $clientEtag));
+
+      foreach ($clientEtags as $clientTag) {
+        // Strip weak indicator (W/) and normalize quotes
+        $normalizedClientTag = preg_replace('/^W\//', '', $clientTag);
+        $normalizedClientTag = trim($normalizedClientTag, '"');
+        $normalizedServerTag = trim($etag, '"');
+
+        if ($normalizedClientTag === $normalizedServerTag) {
+          header('HTTP/1.1 304 Not Modified');
+          exit;
+        }
+      }
+    }
+  }
+}
 
 // Handle cache management actions (debug mode only)
 if (DEBUG_MODE && isset($_GET['action'])) {
