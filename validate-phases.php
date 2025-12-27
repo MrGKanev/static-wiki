@@ -53,14 +53,27 @@ class PhaseValidator
             return;
         }
 
-        $composer = json_decode(file_get_contents($composerPath), true);
+        $composerContents = file_get_contents($composerPath);
+        if ($composerContents === false) {
+            $this->addError('1.1', 'Failed to read composer.json');
+            return;
+        }
+
+        try {
+            $composer = json_decode($composerContents, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $this->addError('1.1', 'composer.json contains invalid JSON: ' . $e->getMessage());
+            return;
+        }
+
         if (!isset($composer['require']['php'])) {
             $this->addError('1.1', 'PHP version not specified in composer.json');
             return;
         }
 
         $phpVersion = $composer['require']['php'];
-        if (preg_match('/>=?8\.[4-9]|>=?9\./', $phpVersion)) {
+        // Match various version constraints: >=8.4, ^8.4, ~8.4, >=8.4.0, >=9.0, etc.
+        if (preg_match('/^(?:>=?\s*(?:8\.[4-9]|9\.\d+)|\^8\.[4-9]|~8\.[4-9])/', $phpVersion)) {
             $this->addSuccess('1.1', "composer.json requires PHP $phpVersion");
         } else {
             $this->addError('1.1', "composer.json PHP version ($phpVersion) is not >= 8.4");

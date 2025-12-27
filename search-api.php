@@ -57,6 +57,14 @@ try {
 
   // Initialize wiki and perform search using Wiki::search()
   $wiki = new Wiki(null, $cache);
+
+  // Check if result will come from cache
+  $wasCached = false;
+  if ($cache && ENABLE_CACHE) {
+    $cacheKey = 'search_' . md5($query);
+    $wasCached = $cache->has($cacheKey);
+  }
+
   $results = $wiki->search($query);
 
   // Add URL to each result for consistency with old API
@@ -70,7 +78,7 @@ try {
     'results' => $results,
     'query' => $query,
     'total' => count($results),
-    'cached' => ENABLE_CACHE
+    'cached' => $wasCached
   ];
 
   echo json_encode($response);

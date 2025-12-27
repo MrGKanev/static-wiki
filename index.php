@@ -117,9 +117,20 @@ if (!$isSearch && !isset($_GET['export']) && !isset($_GET['action'])) {
     // Check If-None-Match header (ETag)
     if (isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
       $clientEtag = trim($_SERVER['HTTP_IF_NONE_MATCH']);
-      if ($clientEtag === $etag) {
-        header('HTTP/1.1 304 Not Modified');
-        exit;
+
+      // Handle multiple ETags (comma-separated)
+      $clientEtags = array_map('trim', explode(',', $clientEtag));
+
+      foreach ($clientEtags as $clientTag) {
+        // Strip weak indicator (W/) and normalize quotes
+        $normalizedClientTag = preg_replace('/^W\//', '', $clientTag);
+        $normalizedClientTag = trim($normalizedClientTag, '"');
+        $normalizedServerTag = trim($etag, '"');
+
+        if ($normalizedClientTag === $normalizedServerTag) {
+          header('HTTP/1.1 304 Not Modified');
+          exit;
+        }
       }
     }
   }
