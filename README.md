@@ -14,7 +14,7 @@ A file-based wiki system using Markdown files with automatic navigation, full-te
 
 ## Requirements
 
-- PHP 8.3 or higher
+- PHP 8.4 or higher
 - Composer
 
 ## Quick Start
@@ -175,6 +175,21 @@ composer test
 ```bash
 composer run clear-cache
 ```
+
+### Phase Validation
+
+Validate that all code optimizations are correctly implemented:
+
+```bash
+php validate-phases.php
+```
+
+This checks:
+- PHP 8.4+ requirement in composer.json and Dockerfile
+- Strict types declaration in all PHP files
+- JSON caching (no serialize/unserialize vulnerabilities)
+- Interface implementations
+- Type hints and namespaces
 
 ## Contributing
 
