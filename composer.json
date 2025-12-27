@@ -10,7 +10,7 @@
     }
   ],
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "league/commonmark": "^2.7",
     "tecnickcom/tcpdf": "^6.10"
   },

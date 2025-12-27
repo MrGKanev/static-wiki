@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * PDF Export functionality for wiki pages
  * Uses TCPDF library for PDF generation

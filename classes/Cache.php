@@ -1,16 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
+namespace Wiki;
+
+use Wiki\Interfaces\CacheInterface;
+
 /**
  * Simple file-based caching system
  * Improves performance by caching expensive operations
  */
-
-class Cache
+class Cache implements CacheInterface
 {
-  private $cacheDir;
-  private $defaultTtl;
+  private string $cacheDir;
+  private int $defaultTtl;
 
-  public function __construct($cacheDir = null, $defaultTtl = 3600)
+  public function __construct(?string $cacheDir = null, int $defaultTtl = 3600)
   {
     $this->cacheDir = $cacheDir ?: CACHE_DIR;
     $this->defaultTtl = $defaultTtl;
@@ -24,7 +29,7 @@ class Cache
   /**
    * Get cached data if it exists and is still valid
    */
-  public function get($key)
+  public function get(string $key): mixed
   {
     $filePath = $this->getCacheFilePath($key);
 
@@ -33,9 +38,9 @@ class Cache
     }
 
     $data = file_get_contents($filePath);
-    $cache = unserialize($data);
+    $cache = json_decode($data, true);
 
-    if (!$cache || !isset($cache['expires']) || !isset($cache['data'])) {
+    if (json_last_error() !== JSON_ERROR_NONE || !$cache || !isset($cache['expires']) || !isset($cache['data'])) {
       return null;
     }
 
@@ -51,7 +56,7 @@ class Cache
   /**
    * Store data in cache
    */
-  public function set($key, $data, $ttl = null)
+  public function set(string $key, mixed $data, ?int $ttl = null): bool
   {
     $ttl = $ttl ?: $this->defaultTtl;
     $filePath = $this->getCacheFilePath($key);
@@ -62,7 +67,12 @@ class Cache
       'created' => time()
     ];
 
-    $serialized = serialize($cache);
+    try {
+      $serialized = json_encode($cache, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+    } catch (\JsonException $e) {
+      error_log('Cache::set() - JSON encoding error: ' . $e->getMessage());
+      return false;
+    }
 
     // Atomic write using temporary file
     $tempFile = $filePath . '.tmp';
@@ -76,7 +86,7 @@ class Cache
   /**
    * Delete a cache entry
    */
-  public function delete($key)
+  public function delete(string $key): bool
   {
     $filePath = $this->getCacheFilePath($key);
 
@@ -90,7 +100,7 @@ class Cache
   /**
    * Check if cache entry exists and is valid
    */
-  public function has($key)
+  public function has(string $key): bool
   {
     return $this->get($key) !== null;
   }
@@ -98,7 +108,7 @@ class Cache
   /**
    * Get cached data or execute callback and cache the result
    */
-  public function remember($key, $callback, $ttl = null)
+  public function remember(string $key, callable $callback, ?int $ttl = null): mixed
   {
     $data = $this->get($key);
 
@@ -117,7 +127,7 @@ class Cache
    * Get cached data based on file modification time
    * Automatically invalidates if source file is newer
    */
-  public function rememberFile($key, $sourceFile, $callback, $ttl = null)
+  public function rememberFile(string $key, string $sourceFile, callable $callback, ?int $ttl = null): mixed
   {
     if (!file_exists($sourceFile)) {
       return $callback();
@@ -133,7 +143,7 @@ class Cache
    * Get cached data based on directory modification time
    * Useful for caching navigation trees
    */
-  public function rememberDirectory($key, $sourceDir, $callback, $ttl = null)
+  public function rememberDirectory(string $key, string $sourceDir, callable $callback, ?int $ttl = null): mixed
   {
     $dirMtime = $this->getDirectoryMtime($sourceDir);
     $cacheKey = $key . '_' . $dirMtime;
@@ -144,10 +154,10 @@ class Cache
   /**
    * Clear all cache entries
    */
-  public function clear()
+  public function clear(): int
   {
     if (!is_dir($this->cacheDir)) {
-      return true;
+      return 0;
     }
 
     $files = glob($this->cacheDir . '/*.cache');
@@ -165,7 +175,7 @@ class Cache
   /**
    * Clean expired cache entries
    */
-  public function cleanup()
+  public function cleanup(): int
   {
     if (!is_dir($this->cacheDir)) {
       return 0;
@@ -176,7 +186,7 @@ class Cache
 
     foreach ($files as $file) {
       $data = file_get_contents($file);
-      $cache = unserialize($data);
+      $cache = json_decode($data, true);
 
       if (!$cache || !isset($cache['expires']) || time() > $cache['expires']) {
         if (unlink($file)) {
@@ -191,7 +201,7 @@ class Cache
   /**
    * Get cache statistics
    */
-  public function getStats()
+  public function getStats(): array
   {
     if (!is_dir($this->cacheDir)) {
       return ['total' => 0, 'size' => 0, 'expired' => 0];
@@ -206,7 +216,7 @@ class Cache
       $size += filesize($file);
 
       $data = file_get_contents($file);
-      $cache = unserialize($data);
+      $cache = json_decode($data, true);
 
       if (!$cache || !isset($cache['expires']) || time() > $cache['expires']) {
         $expired++;
@@ -225,7 +235,7 @@ class Cache
   /**
    * Get cache file path for a given key
    */
-  private function getCacheFilePath($key)
+  private function getCacheFilePath(string $key): string
   {
     $safeKey = preg_replace('/[^a-zA-Z0-9_-]/', '_', $key);
     return $this->cacheDir . '/' . $safeKey . '.cache';
@@ -234,7 +244,7 @@ class Cache
   /**
    * Get the latest modification time for a directory and its contents
    */
-  private function getDirectoryMtime($dir)
+  private function getDirectoryMtime(string $dir): int
   {
     if (!is_dir($dir)) {
       return 0;
@@ -258,7 +268,7 @@ class Cache
   /**
    * Format bytes in human readable format
    */
-  private function formatBytes($size)
+  private function formatBytes(int|float $size): string
   {
     $units = ['B', 'KB', 'MB', 'GB'];
     $i = 0;
@@ -274,8 +284,8 @@ class Cache
   /**
    * Generate a cache key based on multiple parameters
    */
-  public static function generateKey(...$params)
+  public static function generateKey(mixed ...$params): string
   {
-    return md5(serialize($params));
+    return md5(json_encode($params));
   }
 }

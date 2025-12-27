@@ -1,21 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
+namespace Wiki;
+
+use Wiki\Interfaces\CacheInterface;
+
 /**
  * Main Wiki class
  * Handles content retrieval, navigation, and search functionality
  * Enhanced version with improved nested directory support
  */
-
 class Wiki
 {
-  private $contentDir;
-  private $navigation;
-  private $cache;
+  private string $contentDir;
+  private ?array $navigation = null;
+  private ?CacheInterface $cache;
 
-  public function __construct($contentDir = null, $cache = null)
+  public function __construct(?string $contentDir = null, ?CacheInterface $cache = null)
   {
     $this->contentDir = $contentDir ?: CONTENT_DIR;
-    $this->navigation = null;
     $this->cache = $cache;
 
     // Initialize cache if enabled and not provided
@@ -28,7 +32,7 @@ class Wiki
    * Get the current page path from URL parameters
    * Enhanced with better nested path handling
    */
-  public function getCurrentPath()
+  public function getCurrentPath(): string
   {
     $path = $_GET['page'] ?? '';
     $path = trim($path, '/');
@@ -47,7 +51,7 @@ class Wiki
   /**
    * Enhanced path sanitization that preserves valid nested structures
    */
-  private function sanitizePathEnhanced($path)
+  private function sanitizePathEnhanced(string $path): string
   {
     // Remove any directory traversal attempts
     $path = str_replace(['../', '..\\', './'], '', $path);

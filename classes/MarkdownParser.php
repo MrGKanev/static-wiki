@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Enhanced Markdown Parser with League/CommonMark and Fallback
  * Automatically falls back to simple parser if League/CommonMark is not available

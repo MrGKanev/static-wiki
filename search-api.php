@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Live Search API Endpoint
  * Handles AJAX requests for real-time search functionality
