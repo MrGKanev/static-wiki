@@ -124,7 +124,7 @@ if (!$isSearch && !isset($_GET['export']) && !isset($_GET['action'])) {
       foreach ($clientEtags as $clientTag) {
         // Strip weak indicator (W/) and normalize quotes
         $normalizedClientTag = preg_replace('/^W\//', '', $clientTag);
-        $normalizedClientTag = trim($normalizedClientTag, '"');
+        $normalizedClientTag = trim($normalizedClientTag ?? '', '"');
         $normalizedServerTag = trim($etag, '"');
 
         if ($normalizedClientTag === $normalizedServerTag) {

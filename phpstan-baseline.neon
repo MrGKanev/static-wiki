@@ -1,0 +1,559 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property DOMNameSpaceNode\|DOMNode\:\:\$textContent\.$#'
+			identifier: property.notFound
+			count: 2
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Argument of an invalid type DOMNodeList\<DOMNameSpaceNode\|DOMNode\>\|false supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:hasAttribute\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:setAttribute\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:ensureHeadingIdsWithDOM\(\) should return string but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:ensureHeadingIdsWithRegex\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseAutolinks\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseBlockquotes\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseBold\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseFencedCodeBlocks\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseHeaders\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseHorizontalRules\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseImages\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseInlineCode\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseItalic\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseLinks\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseLists\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseStrikethrough\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:parseTaskLists\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Method Wiki\\MarkdownParser\:\:renderSimpleTable\(\) has parameter \$rows with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Offset 1 on array\{non\-falsy\-string, string, string\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 5
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Property Wiki\\MarkdownParser\:\:\$debugInfo type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 7
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 8
+			path: classes/MarkdownParser.php
+
+		-
+			message: '#^Binary operation "\." between "\\n        \<style\>\\n  …" and array\<string\>\|string\|null results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Constant PDF_UNIT not found\.$#'
+			identifier: constant.notFound
+			count: 2
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:__construct\(\) has parameter \$cache with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:__construct\(\) has parameter \$wiki with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:collectPagesInSection\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:collectPagesInSection\(\) has parameter \$basePath with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:collectPagesInSection\(\) has parameter \$navigation with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:exportPage\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:exportPage\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:exportPage\(\) has parameter \$path with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:exportSection\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:exportSection\(\) has parameter \$basePath with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:exportSection\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:generatePDFFilename\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:generatePDFFilename\(\) has parameter \$path with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:generatePDFFilename\(\) has parameter \$title with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:generateTitleFromPath\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:generateTitleFromPath\(\) has parameter \$path with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:preparePDFContent\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:preparePDFContent\(\) has parameter \$htmlContent with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Method PDFExporter\:\:preparePDFContent\(\) has parameter \$path with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Property PDFExporter\:\:\$cache has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Property PDFExporter\:\:\$cache is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Property PDFExporter\:\:\$wiki has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: classes/PDFexporter.php
+
+		-
+			message: '#^Call to an undefined method Wiki\\Interfaces\\CacheInterface\:\:rememberDirectory\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Call to an undefined method Wiki\\Interfaces\\CacheInterface\:\:rememberFile\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 11
+			path: classes/Wiki.php
+
+		-
+			message: '#^Left side of && is always false\.$#'
+			identifier: booleanAnd.leftAlwaysFalse
+			count: 2
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:buildNavTree\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:constructPagePath\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:createCategoryItem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:createPageItem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:generatePossiblePaths\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:getCacheStats\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:getNavigation\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:getPageHeadings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:getPageModified\(\) should return int\|null but returns int\<0, max\>\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:getRawPageContent\(\) should return string\|null but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:getSortedDirectoryContents\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:sanitizePath\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:search\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:searchInDirectory\(\) has parameter \$results with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Method Wiki\\Wiki\:\:searchInFile\(\) has parameter \$results with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Parameter \#1 \$content of static method Wiki\\MarkdownParser\:\:createSearchSnippet\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Parameter \#1 \$content of static method Wiki\\MarkdownParser\:\:extractTitle\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Parameter \#1 \$haystack of function stripos expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Parameter \#1 \$text of static method Wiki\\MarkdownParser\:\:parse\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: classes/Wiki.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: classes/Wiki.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 5
+			path: classes/Wiki.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 1
+			path: config.php
+
+		-
+			message: '#^Expression in empty\(\) is always falsy\.$#'
+			identifier: empty.expr
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Expression in empty\(\) is not falsy\.$#'
+			identifier: empty.expr
+			count: 2
+			path: includes/template-functions.php
+
+		-
+			message: '#^Function checkIfContainsCurrentPage\(\) has parameter \$category with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Function renderBreadcrumbs\(\) has parameter \$breadcrumbs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Function renderNavigation\(\) has parameter \$items with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Function renderPageActions\(\) has parameter \$pageHeadings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Function renderTableOfContents\(\) has parameter \$headings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Parameter \$wiki of function renderDebugInfo\(\) has invalid type Wiki\.$#'
+			identifier: class.notFound
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 1
+			path: includes/template-functions.php
+
+		-
+			message: '#^Ternary operator condition is always false\.$#'
+			identifier: ternary.alwaysFalse
+			count: 4
+			path: includes/template-functions.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: includes/template-functions.php

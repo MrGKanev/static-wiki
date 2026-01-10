@@ -20,10 +20,12 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
   require_once CLASSES_DIR . '/MarkdownParser.php';
   require_once CLASSES_DIR . '/Cache.php';
   require_once CLASSES_DIR . '/Wiki.php';
+  require_once CLASSES_DIR . '/RateLimiter.php';
 }
 
 use Wiki\Cache;
 use Wiki\Wiki;
+use Wiki\RateLimiter;
 
 // Set JSON response headers
 header('Content-Type: application/json');
@@ -33,6 +35,25 @@ header('Cache-Control: no-cache, must-revalidate');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
+
+// Rate limiting - protect against API abuse
+$rateLimiter = new RateLimiter();
+$clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+if (!$rateLimiter->checkLimit($clientIp)) {
+  http_response_code(429);
+  header('Retry-After: ' . $rateLimiter->getResetTime($clientIp));
+  echo json_encode([
+    'success' => false,
+    'error' => 'Rate limit exceeded. Please try again later.',
+    'retry_after' => $rateLimiter->getResetTime($clientIp),
+    'results' => []
+  ]);
+  exit;
+}
+
+// Add rate limit headers for transparency
+header('X-RateLimit-Remaining: ' . $rateLimiter->getRemainingRequests($clientIp));
 
 try {
   // Get search query

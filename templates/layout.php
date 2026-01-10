@@ -59,6 +59,13 @@ function getLogoSrc()
   <link rel="stylesheet" href="assets/css/dark-mode.css">
 
   <meta name="description" content="<?php echo htmlspecialchars($pageTitle ?? 'Company Wiki'); ?>">
+
+  <!-- PWA Support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="<?php echo htmlspecialchars(WIKI_TITLE); ?>">
 </head>
 
 <body>
@@ -231,6 +238,17 @@ function getLogoSrc()
   <script src="assets/js/keyboard-shortcuts.js"></script>
   <script src="assets/js/theme-toggle.js"></script>
   <script src="assets/js/live-search.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('assets/js/sw.js')
+          .then(reg => console.log('[SW] Registered'))
+          .catch(err => console.log('[SW] Registration failed:', err));
+      });
+    }
+  </script>
 </body>
 
 </html>

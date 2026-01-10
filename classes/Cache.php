@@ -7,17 +7,49 @@ namespace Wiki;
 use Wiki\Interfaces\CacheInterface;
 
 /**
- * Simple file-based caching system
- * Improves performance by caching expensive operations
+ * File-based caching system for the Static Wiki
+ *
+ * Provides a simple, file-based caching mechanism that stores serialized data
+ * as JSON files. Supports TTL-based expiration, file/directory-based cache
+ * invalidation, and atomic write operations for data integrity.
+ *
+ * @package Wiki
+ * @author  Static Wiki Contributors
+ * @license MIT
+ *
+ * @example Basic usage:
+ * ```php
+ * $cache = new Cache('/path/to/cache', 3600);
+ *
+ * // Store data
+ * $cache->set('user_123', ['name' => 'John'], 1800);
+ *
+ * // Retrieve data
+ * $data = $cache->get('user_123');
+ *
+ * // Use remember pattern
+ * $result = $cache->remember('expensive_operation', fn() => computeData(), 3600);
+ * ```
  */
 class Cache implements CacheInterface
 {
-  private string $cacheDir;
-  private int $defaultTtl;
+  /** @var string Directory where cache files are stored */
+  private readonly string $cacheDir;
 
+  /** @var int Default time-to-live in seconds for cache entries */
+  private readonly int $defaultTtl;
+
+  /**
+   * Create a new Cache instance
+   *
+   * @param string|null $cacheDir   Directory for cache files (defaults to CACHE_DIR constant)
+   * @param int         $defaultTtl Default TTL in seconds (default: 3600 = 1 hour)
+   *
+   * @throws \RuntimeException If cache directory cannot be created
+   */
   public function __construct(?string $cacheDir = null, int $defaultTtl = 3600)
   {
-    $this->cacheDir = $cacheDir ?: CACHE_DIR;
+    $this->cacheDir = $cacheDir ?? CACHE_DIR;
     $this->defaultTtl = $defaultTtl;
 
     // Ensure cache directory exists
@@ -27,7 +59,14 @@ class Cache implements CacheInterface
   }
 
   /**
-   * Get cached data if it exists and is still valid
+   * Retrieve cached data by key
+   *
+   * Returns the cached data if it exists and hasn't expired,
+   * otherwise returns null.
+   *
+   * @param string $key The cache key to retrieve
+   *
+   * @return mixed The cached data, or null if not found/expired
    */
   public function get(string $key): mixed
   {
@@ -38,6 +77,9 @@ class Cache implements CacheInterface
     }
 
     $data = file_get_contents($filePath);
+    if ($data === false) {
+      return null;
+    }
     $cache = json_decode($data, true);
 
     if (json_last_error() !== JSON_ERROR_NONE || !$cache || !isset($cache['expires']) || !isset($cache['data'])) {
@@ -54,7 +96,16 @@ class Cache implements CacheInterface
   }
 
   /**
-   * Store data in cache
+   * Store data in the cache
+   *
+   * Uses atomic write operations (write to temp file, then rename) to ensure
+   * data integrity even under concurrent access.
+   *
+   * @param string   $key  The cache key
+   * @param mixed    $data The data to cache (must be JSON-serializable)
+   * @param int|null $ttl  Time-to-live in seconds (null = use default)
+   *
+   * @return bool True on success, false on failure
    */
   public function set(string $key, mixed $data, ?int $ttl = null): bool
   {
@@ -85,6 +136,10 @@ class Cache implements CacheInterface
 
   /**
    * Delete a cache entry
+   *
+   * @param string $key The cache key to delete
+   *
+   * @return bool True if deleted or didn't exist, false on error
    */
   public function delete(string $key): bool
   {
@@ -98,7 +153,11 @@ class Cache implements CacheInterface
   }
 
   /**
-   * Check if cache entry exists and is valid
+   * Check if a valid cache entry exists
+   *
+   * @param string $key The cache key to check
+   *
+   * @return bool True if cache entry exists and is valid
    */
   public function has(string $key): bool
   {
@@ -107,6 +166,21 @@ class Cache implements CacheInterface
 
   /**
    * Get cached data or execute callback and cache the result
+   *
+   * This is the recommended pattern for caching expensive operations.
+   * If the cache exists, returns it. Otherwise, executes the callback,
+   * caches the result, and returns it.
+   *
+   * @param string   $key      The cache key
+   * @param callable $callback Function to execute if cache miss
+   * @param int|null $ttl      Time-to-live in seconds (null = use default)
+   *
+   * @return mixed The cached or computed data
+   *
+   * @example
+   * ```php
+   * $users = $cache->remember('all_users', fn() => $db->fetchAllUsers(), 3600);
+   * ```
    */
   public function remember(string $key, callable $callback, ?int $ttl = null): mixed
   {
@@ -124,8 +198,17 @@ class Cache implements CacheInterface
   }
 
   /**
-   * Get cached data based on file modification time
-   * Automatically invalidates if source file is newer
+   * Cache data with automatic invalidation when source file changes
+   *
+   * Creates a cache key that includes the file's modification time,
+   * automatically invalidating the cache when the file is modified.
+   *
+   * @param string   $key        Base cache key
+   * @param string   $sourceFile Path to the source file to monitor
+   * @param callable $callback   Function to execute on cache miss
+   * @param int|null $ttl        Time-to-live in seconds
+   *
+   * @return mixed The cached or computed data
    */
   public function rememberFile(string $key, string $sourceFile, callable $callback, ?int $ttl = null): mixed
   {
@@ -140,8 +223,17 @@ class Cache implements CacheInterface
   }
 
   /**
-   * Get cached data based on directory modification time
-   * Useful for caching navigation trees
+   * Cache data with automatic invalidation when any file in directory changes
+   *
+   * Monitors an entire directory tree for changes. Useful for caching
+   * navigation structures or aggregated content from multiple files.
+   *
+   * @param string   $key       Base cache key
+   * @param string   $sourceDir Path to the directory to monitor
+   * @param callable $callback  Function to execute on cache miss
+   * @param int|null $ttl       Time-to-live in seconds
+   *
+   * @return mixed The cached or computed data
    */
   public function rememberDirectory(string $key, string $sourceDir, callable $callback, ?int $ttl = null): mixed
   {
@@ -152,7 +244,11 @@ class Cache implements CacheInterface
   }
 
   /**
-   * Clear all cache entries
+   * Delete all cache entries
+   *
+   * Removes all .cache files from the cache directory.
+   *
+   * @return int Number of cache entries deleted
    */
   public function clear(): int
   {
@@ -161,6 +257,9 @@ class Cache implements CacheInterface
     }
 
     $files = glob($this->cacheDir . '/*.cache');
+    if ($files === false) {
+      return 0;
+    }
     $cleared = 0;
 
     foreach ($files as $file) {
@@ -173,7 +272,12 @@ class Cache implements CacheInterface
   }
 
   /**
-   * Clean expired cache entries
+   * Remove expired cache entries
+   *
+   * Scans all cache files and removes those that have expired.
+   * This is typically called periodically or on a schedule.
+   *
+   * @return int Number of expired entries removed
    */
   public function cleanup(): int
   {
@@ -182,10 +286,16 @@ class Cache implements CacheInterface
     }
 
     $files = glob($this->cacheDir . '/*.cache');
+    if ($files === false) {
+      return 0;
+    }
     $cleaned = 0;
 
     foreach ($files as $file) {
       $data = file_get_contents($file);
+      if ($data === false) {
+        continue;
+      }
       $cache = json_decode($data, true);
 
       if (!$cache || !isset($cache['expires']) || time() > $cache['expires']) {
@@ -200,22 +310,36 @@ class Cache implements CacheInterface
 
   /**
    * Get cache statistics
+   *
+   * Returns information about the current state of the cache,
+   * including total entries, size, and expired entries.
+   *
+   * @return array{total: int, size: int, size_human: string, expired: int, valid: int}
    */
   public function getStats(): array
   {
     if (!is_dir($this->cacheDir)) {
-      return ['total' => 0, 'size' => 0, 'expired' => 0];
+      return ['total' => 0, 'size' => 0, 'size_human' => '0 B', 'expired' => 0, 'valid' => 0];
     }
 
     $files = glob($this->cacheDir . '/*.cache');
+    if ($files === false) {
+      return ['total' => 0, 'size' => 0, 'size_human' => '0 B', 'expired' => 0, 'valid' => 0];
+    }
     $total = count($files);
     $size = 0;
     $expired = 0;
 
     foreach ($files as $file) {
-      $size += filesize($file);
+      $fileSize = filesize($file);
+      if ($fileSize !== false) {
+        $size += $fileSize;
+      }
 
       $data = file_get_contents($file);
+      if ($data === false) {
+        continue;
+      }
       $cache = json_decode($data, true);
 
       if (!$cache || !isset($cache['expires']) || time() > $cache['expires']) {
@@ -251,8 +375,11 @@ class Cache implements CacheInterface
     }
 
     $mtime = filemtime($dir);
-    $iterator = new RecursiveIteratorIterator(
-      new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
+    if ($mtime === false) {
+      return 0;
+    }
+    $iterator = new \RecursiveIteratorIterator(
+      new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS)
     );
 
     foreach ($iterator as $file) {
@@ -282,10 +409,24 @@ class Cache implements CacheInterface
   }
 
   /**
-   * Generate a cache key based on multiple parameters
+   * Generate a unique cache key from multiple parameters
+   *
+   * Creates an MD5 hash from the JSON representation of all parameters,
+   * useful for creating cache keys from complex data structures.
+   *
+   * @param mixed ...$params Any number of parameters to include in the key
+   *
+   * @return string A 32-character hexadecimal hash
+   *
+   * @example
+   * ```php
+   * $key = Cache::generateKey('users', ['active' => true], 1);
+   * // Returns something like: "a1b2c3d4e5f6..."
+   * ```
    */
   public static function generateKey(mixed ...$params): string
   {
-    return md5(json_encode($params));
+    $json = json_encode($params);
+    return md5($json !== false ? $json : serialize($params));
   }
 }

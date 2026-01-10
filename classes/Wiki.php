@@ -7,19 +7,59 @@ namespace Wiki;
 use Wiki\Interfaces\CacheInterface;
 
 /**
- * Main Wiki class
- * Handles content retrieval, navigation, and search functionality
- * Enhanced version with improved nested directory support
+ * Main Wiki class - core content management for Static Wiki
+ *
+ * Handles all content operations including page retrieval, navigation building,
+ * search functionality, and caching. Supports nested directory structures for
+ * organizing content hierarchically.
+ *
+ * @package Wiki
+ * @author  Static Wiki Contributors
+ * @license MIT
+ *
+ * @example Basic usage:
+ * ```php
+ * $cache = new Cache();
+ * $wiki = new Wiki(null, $cache);
+ *
+ * // Get current page
+ * $path = $wiki->getCurrentPath();
+ * $content = $wiki->getPageContent($path);
+ * $title = $wiki->getPageTitle($path);
+ *
+ * // Build navigation
+ * $nav = $wiki->getNavigation();
+ *
+ * // Search content
+ * $results = $wiki->search('api documentation');
+ * ```
  */
 class Wiki
 {
-  private string $contentDir;
+  /** @var string Root directory for content files */
+  private readonly string $contentDir;
+
+  /** @var array<mixed>|null Cached navigation tree */
   private ?array $navigation = null;
+
+  /** @var CacheInterface|null Cache instance for performance */
   private ?CacheInterface $cache;
 
+  /** @var SearchIndex|null Search index for fast lookups */
+  private ?SearchIndex $searchIndex = null;
+
+  /** @var array<string, bool> In-memory cache for file existence checks */
+  private array $fileExistsCache = [];
+
+  /**
+   * Create a new Wiki instance
+   *
+   * @param string|null         $contentDir Directory containing Markdown files (defaults to CONTENT_DIR)
+   * @param CacheInterface|null $cache      Cache instance for improved performance
+   */
   public function __construct(?string $contentDir = null, ?CacheInterface $cache = null)
   {
-    $this->contentDir = $contentDir ?: CONTENT_DIR;
+    $this->contentDir = $contentDir ?? CONTENT_DIR;
     $this->cache = $cache;
 
     // Initialize cache if enabled and not provided
@@ -30,7 +70,11 @@ class Wiki
 
   /**
    * Get the current page path from URL parameters
-   * Enhanced with better nested path handling
+   *
+   * Extracts and sanitizes the 'page' parameter from the URL query string.
+   * Handles nested paths and prevents directory traversal attacks.
+   *
+   * @return string Sanitized page path (empty string for home page)
    */
   public function getCurrentPath(): string
   {
@@ -80,7 +124,15 @@ class Wiki
   }
 
   /**
-   * Enhanced getPageContent with multiple path resolution
+   * Get rendered HTML content for a page
+   *
+   * Resolves the path to a Markdown file, parses it, and returns
+   * the rendered HTML. Handles multiple path formats (with/without extension,
+   * index files, etc.) and uses caching for performance.
+   *
+   * @param string $path Page path (e.g., "docs/api" or "getting-started")
+   *
+   * @return string|null Rendered HTML content, or null if page not found
    */
   public function getPageContent(string $path): ?string
   {
@@ -186,9 +238,29 @@ class Wiki
   }
 
   /**
-   * Check if file exists and is valid
+   * Check if file exists and is valid (with in-memory caching)
    */
   private function isValidFile(string $filePath): bool
+  {
+    // Check in-memory cache first for performance
+    $cacheKey = md5($filePath);
+    if (isset($this->fileExistsCache[$cacheKey])) {
+      return $this->fileExistsCache[$cacheKey];
+    }
+
+    // Perform actual validation
+    $result = $this->validateFile($filePath);
+
+    // Cache the result for this request
+    $this->fileExistsCache[$cacheKey] = $result;
+
+    return $result;
+  }
+
+  /**
+   * Perform actual file validation
+   */
+  private function validateFile(string $filePath): bool
   {
     if (!file_exists($filePath)) {
       return false;
@@ -198,7 +270,7 @@ class Wiki
     $realContentDir = realpath($this->contentDir);
     $realFilePath = realpath($filePath);
 
-    if (!$realFilePath || strpos($realFilePath, $realContentDir) !== 0) {
+    if (!$realFilePath || !$realContentDir || strpos($realFilePath, $realContentDir) !== 0) {
       return false;
     }
 
@@ -208,7 +280,13 @@ class Wiki
   }
 
   /**
-   * Build and cache navigation tree
+   * Get the navigation tree
+   *
+   * Builds a hierarchical navigation structure from the content directory.
+   * Categories (folders) contain pages (Markdown files). The tree is
+   * cached for performance and invalidated when content changes.
+   *
+   * @return array<array{type: string, name: string, path?: string, items?: array}>
    */
   public function getNavigation(): array
   {
@@ -392,6 +470,7 @@ class Wiki
 
   /**
    * Search for content across all markdown files
+   * Uses inverted index for fast lookups when cache is enabled
    */
   public function search(string $query): array
   {
@@ -399,28 +478,44 @@ class Wiki
       return [];
     }
 
-    // Use cache if enabled
-    if ($this->cache && ENABLE_CACHE) {
-      $cacheKey = 'search_' . md5($query);
-
-      return $this->cache->rememberDirectory(
-        $cacheKey,
-        $this->contentDir,
-        function () use ($query) {
-          $results = [];
-          $this->searchInDirectory($this->contentDir, $query, $results);
-          return array_slice($results, 0, MAX_SEARCH_RESULTS);
-        },
-        SEARCH_CACHE_TTL
-      );
+    // Use SearchIndex for faster lookups when cache is enabled
+    if (ENABLE_CACHE) {
+      return $this->searchWithIndex($query);
     }
 
-    // Fallback without cache
+    // Fallback to directory scan without cache
     $results = [];
     $this->searchInDirectory($this->contentDir, $query, $results);
 
     // Limit results for performance
     return array_slice($results, 0, MAX_SEARCH_RESULTS);
+  }
+
+  /**
+   * Search using the inverted index (much faster for large wikis)
+   *
+   * @return array<array{title: string, path: string, snippet: string}>
+   */
+  private function searchWithIndex(string $query): array
+  {
+    // Lazy initialize search index
+    if ($this->searchIndex === null) {
+      $this->searchIndex = new SearchIndex($this->contentDir, $this->cache);
+    }
+
+    $indexResults = $this->searchIndex->search($query, MAX_SEARCH_RESULTS);
+
+    // Convert to standard result format (remove score)
+    $results = [];
+    foreach ($indexResults as $result) {
+      $results[] = [
+        'title' => $result['title'],
+        'path' => $result['path'],
+        'snippet' => $result['snippet']
+      ];
+    }
+
+    return $results;
   }
 
   /**
@@ -478,7 +573,14 @@ class Wiki
   }
 
   /**
-   * Get page title from content or generate from filename
+   * Get the title for a page
+   *
+   * Extracts the title from the page's first H1 heading, or generates
+   * a human-readable title from the file path if no heading is found.
+   *
+   * @param string $path Page path
+   *
+   * @return string Page title (defaults to "Home" for empty path)
    */
   public function getPageTitle(string $path): string
   {
@@ -521,7 +623,14 @@ class Wiki
   }
 
   /**
-   * Get breadcrumb navigation for current path
+   * Get breadcrumb navigation for a path
+   *
+   * Builds an array of breadcrumb items from root to the current page,
+   * useful for displaying navigation context.
+   *
+   * @param string $currentPath Current page path
+   *
+   * @return array<array{name: string, path: string}> Breadcrumb items
    */
   public function getBreadcrumbs(string $currentPath): array
   {

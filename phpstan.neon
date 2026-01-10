@@ -1,0 +1,52 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    # Maximum strictness level for comprehensive type checking
+    level: 8
+
+    # Paths to analyze
+    paths:
+        - classes
+        - index.php
+        - search-api.php
+        - config.php
+        - includes
+
+    # Exclude templates and vendor (templates have dynamic variables)
+    excludePaths:
+        - templates/*
+        - vendor/*
+
+    # Scan additional files for type information
+    scanFiles:
+        - config.php
+
+    # Treat phpdoc types as certain
+    treatPhpDocTypesAsCertain: true
+
+    # Report unmatched ignored errors (disabled to allow flexible ignores)
+    reportUnmatchedIgnoredErrors: false
+
+    # Disable parallel processing for lower memory usage
+    parallel:
+        maximumNumberOfProcesses: 1
+
+    # Ignore configuration constant-based dead code analysis
+    # These constants (ENABLE_CACHE, DEBUG_MODE) are user-configurable
+    ignoreErrors:
+        -
+            message: '#If condition is always (true|false)\.#'
+            paths:
+                - index.php
+                - search-api.php
+        -
+            message: '#(Left|Right) side of && is always (true|false)\.#'
+            paths:
+                - index.php
+                - search-api.php
+        -
+            message: '#Ternary operator condition is always (true|false)\.#'
+            paths:
+                - index.php
+                - search-api.php
